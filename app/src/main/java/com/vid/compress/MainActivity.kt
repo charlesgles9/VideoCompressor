@@ -37,7 +37,6 @@ class MainActivity : ComponentActivity() {
             it.next()
         val array=it.next().value
 
-
         setContent {
             VideoCompressorTheme(darkTheme = false) {
                 Surface(modifier = Modifier.fillMaxSize(),
