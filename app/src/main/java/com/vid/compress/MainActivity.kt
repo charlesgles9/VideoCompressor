@@ -74,10 +74,17 @@ fun fileList(files:MutableList<File>){
     LazyVerticalGrid(cells = GridCells.Fixed(3),
         state = state,
         contentPadding = PaddingValues(horizontal = 10.dp, vertical = 10.dp)){
+
         items(files) {file->
             fileCard(file)
+
+        }
+
+        item {
+            Spacer(modifier = Modifier.padding(100.dp))
         }
     }
+
 }
 
 @Composable
@@ -131,11 +138,9 @@ fun HorizontalPagerView(files: MutableList<File>){
     Box(modifier = Modifier.fillMaxSize()) {
         
         //create pages
-        val items= listOf(
-            HorizontalPagerContent("Home","homePage","mainPage"),
-            HorizontalPagerContent("Album","AlbumPage","Albums"))
+        val size=2
         val pageState= rememberPagerState()
-        HorizontalPager(count = items.size,
+        HorizontalPager(count =size,
                         state = pageState) { currentPage->
             when(currentPage){
                 

@@ -62,13 +62,44 @@ class FileUtility {
          else "application/octet-stream"
      }
 
+     fun getDirectorySize(dir:File):String{
+         var bytes=0L
+         val files=mutableListOf<File>()
+         val lst=dir.listFiles()
+         lst?.forEach { file->
+             if(file.isDirectory) files.add(file)
+             else bytes+=file.length()
+         }
+         // count the sub-directories
+         while (files.isNotEmpty()){
+             val found= mutableListOf<File>()
+             files.forEach { file->
+                 if(file.isDirectory) {
+                     val innerFileList = file.listFiles()
+                     innerFileList?.forEach { innerFile ->
+                         if(innerFile.isDirectory)
+                             found.add(innerFile)
+                          else
+                              bytes+=innerFile.length()
+                     }
+                 }else
+                     bytes+=file.length()
+             }
+             files.clear()
+             files.addAll(found)
+             found.clear()
+         }
+        return Disk.getSize(bytes)
+     }
+
+
      fun saveFileFromUri(context: Context,uri:Uri,destination:String){
          var stream:InputStream?=null
          var bos:BufferedOutputStream?=null
          try {
              stream=context.contentResolver.openInputStream(uri)
              bos= BufferedOutputStream(FileOutputStream(destination,false))
-             val buffer= ByteArray(1024, init ={0})
+             val buffer= ByteArray(1024)
              stream?.read(buffer)
              do {
                  bos.write(buffer)
@@ -95,6 +126,10 @@ class FileUtility {
          return DocumentFile.fromTreeUri(context,parent)
                ?.createFile("",name)?.exists()?:false
      }
+
+    fun renameFile(context: Context,uri: Uri,name: String){
+        DocumentFile.fromTreeUri(context,uri)?.renameTo(name)
+    }
 
 
 
