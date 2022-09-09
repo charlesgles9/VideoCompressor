@@ -1,6 +1,12 @@
 package com.vid.compress
 
+import android.annotation.SuppressLint
+import android.media.MediaScannerConnection
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.provider.MediaStore
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -23,12 +29,21 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+import androidx.documentfile.provider.DocumentFile
+import com.google.accompanist.pager.ExperimentalPagerApi
+import com.google.accompanist.pager.HorizontalPager
+import com.google.accompanist.pager.rememberPagerState
 import com.vid.compress.permisions.PermissionHelper
 import com.vid.compress.storage.FileUtility
+import com.vid.compress.ui.page.DrawerView
+import com.vid.compress.ui.page.HorizontalPagerContent
+import com.vid.compress.ui.page.albumList
 import com.vid.compress.ui.theme.VideoCompressorTheme
+import kotlinx.coroutines.launch
 import java.io.File
 
 class MainActivity : ComponentActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         PermissionHelper.grantStorageReadWrite(this)
@@ -55,9 +70,10 @@ class MainActivity : ComponentActivity() {
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun fileList(files:MutableList<File>){
+    val state=rememberLazyListState()
     LazyVerticalGrid(cells = GridCells.Fixed(3),
-        state = rememberLazyListState(),
-        contentPadding = PaddingValues(horizontal = 10.dp)){
+        state = state,
+        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 10.dp)){
         items(files) {file->
             fileCard(file)
         }
@@ -72,8 +88,7 @@ fun fileCard(file:File){
                 painter = painterResource(id = R.drawable.ic_launcher_background),
                 contentDescription = "Icon",
                 modifier = Modifier
-                    .clip(CircleShape)
-                    .border(5.dp, MaterialTheme.colors.primary, CircleShape))
+                    .border(5.dp, MaterialTheme.colors.primary))
             Text(text = file.name)
 
     }
@@ -82,48 +97,68 @@ fun fileCard(file:File){
 
 @Composable
 fun toolBar(files: MutableList<File>){
-    Scaffold (topBar = {
+    val scope= rememberCoroutineScope()
+    val scaffoldState= rememberScaffoldState()
+    Scaffold (
+        scaffoldState=scaffoldState,
+        drawerContent = {DrawerView()},
+        topBar = {
         TopAppBar(title = { Text(text = "Compress")},
-                  navigationIcon = {Icon(Icons.Filled.Menu, contentDescription = "Drawer Icon")},
+                  navigationIcon = {
+                      IconButton(onClick = {
+                          scope.launch {
+                              scaffoldState.drawerState.open()
+                          }
+                      }) {
+                          Icon(Icons.Filled.Menu, contentDescription = "Drawer Icon")
+
+                      }
+
+                    },
                   elevation = 10.dp, actions = {
                 Icon(Icons.Filled.PlayArrow, contentDescription = "Play", modifier = Modifier.padding(start = 20.dp,end=20.dp))
                 Icon(Icons.Filled.MoreVert, contentDescription = "More",modifier = Modifier.padding(start = 20.dp,end=20.dp))
             })
     }){
 
-       fileList(files = files)
+      HorizontalPagerView(files)
     }
 }
 
+@OptIn(ExperimentalPagerApi::class)
 @Composable
-fun messageCard(title:String) {
-
-        Row(modifier = Modifier.padding(all = 8.dp),) {
-            Image(
-                painter = painterResource(R.drawable.ic_launcher_background),
-                contentDescription = "Profile", modifier = Modifier
-                    .size(50.dp)
-                    .clip(CircleShape)
-                    .border(2.dp, MaterialTheme.colors.secondary, CircleShape)
-            )
-            Spacer(modifier = Modifier.width(10.dp))
-            var isExpanded by remember { mutableStateOf(false) }
-            Column(modifier = Modifier
-                .padding(top = 8.dp, start = 5.dp)
-                .clickable { isExpanded = !isExpanded }) {
-                Text(text = "Hello $title!", style = MaterialTheme.typography.h5)
-                Text(text = "bloody Hell this is a very amazing day to practice my skills! $title\n i Will be a good coder!\n it's my destiny\n i will overcome\n its in my power\n i will get it\n"
-                    ,style = MaterialTheme.typography.subtitle2, maxLines = if(isExpanded) Int.MAX_VALUE else 2)
-                var text by remember { mutableStateOf(TextFieldValue("")) }
-                OutlinedTextField(value = text, onValueChange = {newText-> text=newText},
-                    label = {Text(text = "label")},
-                    placeholder = { Text(text = "Hello")}
-                )
+fun HorizontalPagerView(files: MutableList<File>){
+    Box(modifier = Modifier.fillMaxSize()) {
+        
+        //create pages
+        val items= listOf(
+            HorizontalPagerContent("Home","homePage","mainPage"),
+            HorizontalPagerContent("Album","AlbumPage","Albums"))
+        val pageState= rememberPagerState()
+        HorizontalPager(count = items.size,
+                        state = pageState) { currentPage->
+            when(currentPage){
+                
+                0->{
+                    fileList(files = files)
+                }
+                
+                1->{
+                    albumList(mutableList = files)
+                }
             }
-
+        }
+        
+        val  coroutineScope= rememberCoroutineScope()
+        
+        Button(onClick = { 
+            coroutineScope.launch {
+                pageState.animateScrollToPage(if(pageState.currentPage==0)1 else 0)
+            }
+        }, modifier = Modifier.align(Alignment.BottomCenter)) {
+            Text(text = "Next Page")
+        }
     }
-
-
 }
 
 
