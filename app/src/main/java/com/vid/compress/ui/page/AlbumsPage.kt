@@ -1,15 +1,14 @@
 package com.vid.compress.ui.page
 
+import android.content.Context
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.Divider
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.res.painterResource
@@ -25,12 +24,13 @@ import java.io.File
 
 
 @Composable
-fun albumList(mutableList: MutableList<File>){
+fun albumList(context: Context){
 
-    LazyColumn{
-        itemsIndexed(mutableList){index, item ->
-            albumItem(file = item)
-            if(index<mutableList.lastIndex)
+   val albumViewModel=AlbumViewModel()
+    LazyColumn(modifier = Modifier.fillMaxSize()){
+        itemsIndexed(albumViewModel.files){index, item ->
+            albumItem(item)
+            if(index<albumViewModel.files.lastIndex)
             Divider(color = MaterialTheme.colors.onSecondary,
                 thickness = 0.5.dp)
         }
@@ -38,13 +38,12 @@ fun albumList(mutableList: MutableList<File>){
             Spacer(modifier = Modifier.padding(50.dp))
         }
     }
+    albumViewModel.fetchFiles(context=context)
 }
 
 
 @Composable
-fun albumItem(file: File){
-
-    val fileViewModel=FileObjectViewModel(file)
+fun albumItem(fileViewModel: FileObjectViewModel){
 
     BoxWithConstraints (modifier = Modifier.fillMaxWidth()){
       val constraints=  ConstraintSet {
@@ -95,6 +94,8 @@ fun albumItem(file: File){
                 modifier = Modifier
                     .layoutId("directoryCount")
                     .padding(end = 15.dp))
+
+            fileViewModel.setDirCount()
         }
     }
 

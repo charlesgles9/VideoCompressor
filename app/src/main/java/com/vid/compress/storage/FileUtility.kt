@@ -5,7 +5,6 @@ import android.database.MergeCursor
 import android.media.MediaScannerConnection
 import android.net.Uri
 import android.provider.MediaStore
-import android.util.Log
 import android.webkit.MimeTypeMap
 import androidx.documentfile.provider.DocumentFile
 import java.io.*
@@ -14,6 +13,10 @@ class FileUtility {
 
     companion object{
       const val CAT="LogFile"
+
+      val videoFilter= FilenameFilter { dir, name ->
+             return@FilenameFilter getExtension(name).toLowerCase() == ".mp4"
+      }
         // arranges all the files folder wise
       fun fetchVideos(context: Context):HashMap<String,MutableList<File>>{
           val map=HashMap<String,MutableList<File>>()
