@@ -59,33 +59,25 @@ class MainActivity : ComponentActivity() {
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun fileList(context: Context){
-
-    val albumViewModel=AlbumViewModel()
-    val state=rememberLazyListState()
-
-    /*state.layoutInfo.visibleItemsInfo.forEach { item->
-        if(!albumViewModel.isEmpty()) {
-           // albumViewModel.files[item.index].loadThumbnail()
-
-        }
-    }*/
+fun fileList(album:AlbumViewModel,state:LazyListState){
 
     val columnCount=3
-    LazyVerticalGrid(cells = GridCells.Fixed(columnCount),
+    val firstVisibleItem by derivedStateOf { state.layoutInfo.visibleItemsInfo }
+    val first=state.firstVisibleItemIndex
+    val last=firstVisibleItem.size+first
+
+    for(i in first*columnCount until last*columnCount){
+        if(!album.isEmpty()&&album.size()>i){
+            album.get(i).loadThumbnail()
+        }
+    }
+
+    LazyVerticalGrid(cells = GridCells.Fixed(3),
         state = state,
         contentPadding = PaddingValues(horizontal = 2.dp, vertical = 2.dp),
         horizontalArrangement = Arrangement.Center){
 
-        val last=state.layoutInfo.visibleItemsInfo.size
-        val first=state.firstVisibleItemIndex
-
-
-        Log.d("LogFile","$last")
-        Log.d("LogFile","$first")
-
-
-        items(items= albumViewModel.files) { file->
+        items(items= album.files) { file->
             fileCard(file)
 
         }
@@ -94,14 +86,13 @@ fun fileList(context: Context){
             Spacer(modifier = Modifier.padding(20.dp))
         }
     }
-    albumViewModel.fetchFiles(foldersOnly = false,context=context)
 
 }
 
 @Composable
 fun fileCard(file:FileObjectViewModel){
 
-     Card(elevation = 5.dp, modifier = Modifier.padding(4.dp)) {
+     Card(elevation = 5.dp, modifier = Modifier.padding(3.dp)) {
          Box {
              if(file.thumbnailLoader.thumbnail!=null) {
                  Image(
@@ -113,20 +104,20 @@ fun fileCard(file:FileObjectViewModel){
                          .size(100.dp))
              }else{
                  Image(
-                     painter = painterResource(id = R.drawable.ic_launcher_background),
+                     painter = painterResource(id = R.drawable.ic_play_video_dark),
                      contentDescription = "Icon",
                      modifier = Modifier
                          .align(Alignment.Center)
-                         .padding(2.dp))
+                         .padding(2.dp).size(100.dp))
              }
              Text(text = file.directoryCount, maxLines = 1,
                  overflow = TextOverflow.Ellipsis,
                  modifier = Modifier
                      .align(Alignment.BottomStart)
-                     .padding(start = 5.dp),
-                 style = TextStyle(color= Color.Magenta,
+                     .padding(start=10.dp, bottom = 5.dp),
+                 style = TextStyle(color= Color.Green,
                                    fontSize = 12.sp,
-                                   fontWeight = FontWeight.Light)
+                                   fontWeight = FontWeight.Bold)
              )
 
              file.setDirCount()
@@ -180,11 +171,20 @@ fun HorizontalPagerView(context: Context){
             when(currentPage){
                 
                 0->{
-                    fileList(context)
+                    val state= rememberLazyListState()
+                    val album=AlbumViewModel()
+
+                    album.fetchFiles(context=context,foldersOnly = false)
+                    fileList(album,state)
                 }
                 
                 1->{
-                    albumList(context)
+                    val state= rememberLazyListState()
+                    val album=AlbumViewModel()
+                        album.fetchFiles(context=context)
+
+                    albumList(album,state)
+
                 }
             }
         }

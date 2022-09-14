@@ -4,6 +4,7 @@ import android.media.ThumbnailUtils
 import android.os.Build
 import android.os.CancellationSignal
 import android.provider.MediaStore
+import android.util.Log
 import android.util.Size
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -28,6 +29,9 @@ class FileObjectViewModel(private val file:File) :ViewModel(){
         selected=!selected
     }
 
+    fun isFolder():Boolean{
+        return file.isDirectory
+    }
     fun loadThumbnail(){
         if(!thumbnailLoader.loaded)
         viewModelScope.launch {
@@ -65,10 +69,14 @@ class FileObjectViewModel(private val file:File) :ViewModel(){
         var loaded=false
         fun loadBitmap():Bitmap?{
             loaded=true
+            val path=if(file.isFile) file.path
+               else  //in case it's a folder try to take it's first content
+              file.path+File.separator+file.list(FileUtility.videoFilter)?.get(0)
+            if(path==null) return null
             return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                ThumbnailUtils.createVideoThumbnail(file,Size(100,100), CancellationSignal())
+                ThumbnailUtils.createVideoThumbnail(File(path),Size(100,100), CancellationSignal())
             }else{
-                ThumbnailUtils.createVideoThumbnail(file.path,MediaStore.Video.Thumbnails.MINI_KIND)
+                ThumbnailUtils.createVideoThumbnail(path,MediaStore.Video.Thumbnails.MINI_KIND)
             }
         }
     }

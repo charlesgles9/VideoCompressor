@@ -1,14 +1,15 @@
 package com.vid.compress.ui.page
 
-import android.content.Context
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material.Divider
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
+import androidx.compose.material.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.res.painterResource
@@ -20,17 +21,28 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.ConstraintSet
 import com.vid.compress.R
 import com.vid.compress.storage.FileObjectViewModel
-import java.io.File
 
 
 @Composable
-fun albumList(context: Context){
+fun albumList(album:AlbumViewModel, state:LazyListState){
+    val firstVisibleItem by derivedStateOf { state.layoutInfo.visibleItemsInfo }
+    val first =state.firstVisibleItemIndex
+    val last=firstVisibleItem.size+first
+    for(i in first until last){
+        if(!album.isEmpty()&&album.size()>i){
+            album.get(i).loadThumbnail()
+        }
+    }
+    LazyColumn(modifier = Modifier.fillMaxSize(), state = state){
 
-   val albumViewModel=AlbumViewModel()
-    LazyColumn(modifier = Modifier.fillMaxSize()){
-        itemsIndexed(albumViewModel.files){index, item ->
-            albumItem(item)
-            if(index<albumViewModel.files.lastIndex)
+        if(album.directory!="")
+        item {
+            moveBack(album = album)
+        }
+
+        itemsIndexed(album.files){ index, item ->
+            albumItem(item, album)
+            if(index<album.files.lastIndex)
             Divider(color = MaterialTheme.colors.onSecondary,
                 thickness = 0.5.dp)
         }
@@ -38,14 +50,51 @@ fun albumList(context: Context){
             Spacer(modifier = Modifier.padding(50.dp))
         }
     }
-    albumViewModel.fetchFiles(context=context)
+
 }
 
+@Composable
+fun moveBack(album: AlbumViewModel){
+
+  Card(modifier = Modifier.fillMaxWidth().clickable { album.setFolder("") }, elevation = 1.dp) {
+      Row(
+          modifier = Modifier
+              .fillMaxWidth()
+              .width(120.dp)
+              .padding(10.dp)
+      ) {
+
+          Icon(
+              painter = painterResource(id = R.drawable.ic_arrow_back),
+              contentDescription = "previous", modifier = Modifier.padding(start = 10.dp)
+          )
+          Text(
+              text = album.directory,
+              style = TextStyle(
+                  color = MaterialTheme.colors.onSecondary,
+                  fontWeight = FontWeight.Bold, fontSize = 15.sp
+              ), maxLines = 1,
+              modifier = Modifier
+                  .fillMaxWidth(0.3f)
+                  .padding(start = 10.dp, bottom = 10.dp)
+          )
+
+      }
+  }
+
+}
 
 @Composable
-fun albumItem(fileViewModel: FileObjectViewModel){
+fun albumItem(fileViewModel: FileObjectViewModel,album: AlbumViewModel){
 
-    BoxWithConstraints (modifier = Modifier.fillMaxWidth()){
+    BoxWithConstraints (modifier =
+    Modifier
+        .fillMaxWidth()
+        .clickable {
+            if (fileViewModel.isFolder())
+                album.setFolder(fileViewModel.filePath)
+
+        }){
       val constraints=  ConstraintSet {
 
            val thumbnail=createRefFor("thumbnail")
@@ -70,12 +119,28 @@ fun albumItem(fileViewModel: FileObjectViewModel){
            }
        }
         ConstraintLayout(constraints, modifier = Modifier.fillMaxWidth()) {
-            Image(painter = painterResource(id = R.drawable.ic_launcher_background),
-                contentDescription ="fileThumbnail" ,
-                modifier = Modifier
-                    .layoutId("thumbnail")
-                    .padding(5.dp)
-                    .size(50.dp))
+            if(fileViewModel.thumbnailLoader.thumbnail!=null){
+                Image(
+                    bitmap = fileViewModel.thumbnailLoader.thumbnail!!,
+                    contentDescription = "fileThumbnail",
+                    modifier = Modifier
+                        .layoutId("thumbnail")
+                        .padding(5.dp)
+                        .size(50.dp)
+                )
+            }else {
+                Image(
+                    painter = painterResource(
+                        id =if(fileViewModel.isFolder()) R.drawable.ic_folder
+                             else
+                        R.drawable.ic_play_video_dark),
+                    contentDescription = "fileThumbnail",
+                    modifier = Modifier
+                        .layoutId("thumbnail")
+                        .padding(5.dp)
+                        .size(50.dp)
+                )
+            }
             Text(text = fileViewModel.fileName,
                 style = TextStyle(color = MaterialTheme.colors.onSecondary,
                 fontWeight = FontWeight.Bold, fontSize = 15.sp), maxLines = 1,

@@ -17,12 +17,49 @@ import java.io.File
 
 class AlbumViewModel() :ViewModel(){
    private lateinit var map:HashMap<String,MutableList<File>>
-    var files =mutableStateListOf<FileObjectViewModel>()
-
-
+   var files =mutableStateListOf<FileObjectViewModel>()
+   var directory=""
     fun isEmpty():Boolean{
         return files.isEmpty()
     }
+
+    fun size():Int{
+        return files.size
+    }
+
+    fun get(index:Int):FileObjectViewModel{
+        return files[index]
+    }
+
+    fun setFolder(key:String){
+
+        //reset the album to the origin
+        if(key==""){
+            files.clear()
+            map.forEach {
+                files.add(FileObjectViewModel(it.key))
+            }
+            directory=""
+            return
+        }
+
+        if(!map.containsKey(key))
+            return
+
+        //remove previously attached files
+        files.clear()
+
+        // add the files of the specific folder only
+        val data=map[key]
+
+        data?.forEach {file ->
+            files.add(FileObjectViewModel(file))
+        }
+
+        directory=File(key).name
+
+    }
+
     fun fetchFiles(foldersOnly: Boolean =true,context: Context){
         viewModelScope.launch {
             val data= mutableListOf<FileObjectViewModel>()
@@ -32,7 +69,6 @@ class AlbumViewModel() :ViewModel(){
                     map.forEach {
                         data.add(FileObjectViewModel(it.key))
                     }
-
                 } else {
                     map.forEach { album ->
                         album.value.forEach { file ->
