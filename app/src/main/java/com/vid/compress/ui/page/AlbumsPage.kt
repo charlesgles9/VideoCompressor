@@ -24,14 +24,17 @@ import com.vid.compress.storage.FileObjectViewModel
 
 
 @Composable
-fun albumList(album:AlbumViewModel, state:LazyListState){
-    val firstVisibleItem by derivedStateOf { state.layoutInfo.visibleItemsInfo }
-    val first =state.firstVisibleItemIndex
-    val last=firstVisibleItem.size+first
-    for(i in first until last){
-        if(!album.isEmpty()&&album.size()>i){
-            album.get(i).loadThumbnail()
+fun albumList(album:AlbumViewModel, state:LazyListState,scrollInfo: ScrollInfo){
+    val first by derivedStateOf { state.firstVisibleItemIndex}
+    if(!scrollInfo.isEqualTo(first)){
+        val last=first+state.layoutInfo.visibleItemsInfo.size+5
+       for(i in first until last){
+          if(!album.isEmpty()&&album.size()>i){
+              scrollInfo.firstVisibleItem=first
+              //album.get(i).loadThumbnail()
+              album.get(i).setDirCount()
         }
+      }
     }
     LazyColumn(modifier = Modifier.fillMaxSize(), state = state){
 
@@ -160,7 +163,7 @@ fun albumItem(fileViewModel: FileObjectViewModel,album: AlbumViewModel){
                     .layoutId("directoryCount")
                     .padding(end = 15.dp))
 
-            fileViewModel.setDirCount()
+
         }
     }
 

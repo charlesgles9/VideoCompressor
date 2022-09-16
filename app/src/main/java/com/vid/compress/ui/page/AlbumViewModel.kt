@@ -68,6 +68,7 @@ class AlbumViewModel() :ViewModel(){
                 if (foldersOnly) {
                     map.forEach {
                         data.add(FileObjectViewModel(it.key))
+
                     }
                 } else {
                     map.forEach { album ->
