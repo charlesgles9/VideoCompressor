@@ -5,6 +5,14 @@ plugins {
 
 
 android {
+    signingConfigs {
+        release {
+            storeFile file('/home/tnt/default.jks')
+            storePassword 'sunspot123'
+            keyAlias 'sunspot'
+            keyPassword 'sunspot123'
+        }
+    }
     compileSdk 33
 
     defaultConfig {
@@ -24,6 +32,7 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
         }
     }
     compileOptions {

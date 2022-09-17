@@ -1,5 +1,6 @@
 package com.vid.compress.ui.page
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -10,29 +11,37 @@ import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.ConstraintSet
+import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.bumptech.glide.request.RequestOptions
+import com.skydoves.landscapist.ImageOptions
+import com.skydoves.landscapist.glide.GlideImage
 import com.vid.compress.R
 import com.vid.compress.storage.FileObjectViewModel
 
 
+@SuppressLint("UnrememberedMutableState")
 @Composable
 fun albumList(album:AlbumViewModel, state:LazyListState,scrollInfo: ScrollInfo){
     val first by derivedStateOf { state.firstVisibleItemIndex}
     if(!scrollInfo.isEqualTo(first)){
-        val last=first+state.layoutInfo.visibleItemsInfo.size+5
+        val last=first+ remember { derivedStateOf { state.layoutInfo.visibleItemsInfo.size+5 } }.value
        for(i in first until last){
           if(!album.isEmpty()&&album.size()>i){
               scrollInfo.firstVisibleItem=first
-              //album.get(i).loadThumbnail()
-              album.get(i).setDirCount()
+              album.get(i).loadVideoDetails()
         }
       }
     }
@@ -122,9 +131,13 @@ fun albumItem(fileViewModel: FileObjectViewModel,album: AlbumViewModel){
            }
        }
         ConstraintLayout(constraints, modifier = Modifier.fillMaxWidth()) {
-            if(fileViewModel.thumbnailLoader.thumbnail!=null){
+            if(fileViewModel.isFolder()) {
                 Image(
-                    bitmap = fileViewModel.thumbnailLoader.thumbnail!!,
+                    painter = painterResource(
+                        id = if (fileViewModel.isFolder()) R.drawable.ic_folder
+                        else
+                            R.drawable.ic_play_video_dark
+                    ),
                     contentDescription = "fileThumbnail",
                     modifier = Modifier
                         .layoutId("thumbnail")
@@ -132,18 +145,20 @@ fun albumItem(fileViewModel: FileObjectViewModel,album: AlbumViewModel){
                         .size(50.dp)
                 )
             }else {
-                Image(
-                    painter = painterResource(
-                        id =if(fileViewModel.isFolder()) R.drawable.ic_folder
-                             else
-                        R.drawable.ic_play_video_dark),
-                    contentDescription = "fileThumbnail",
-                    modifier = Modifier
-                        .layoutId("thumbnail")
-                        .padding(5.dp)
-                        .size(50.dp)
+                GlideImage(imageModel = fileViewModel.filePath,
+                    imageOptions = ImageOptions(
+                        alignment = Alignment.Center,
+                        contentScale = ContentScale.Crop
+                    ),
+                    requestOptions = {
+                        RequestOptions().placeholder(R.drawable.ic_play_video_dark)
+                            .override(100, 100).diskCacheStrategy(
+                            DiskCacheStrategy.ALL
+                        ).centerCrop()
+                    }, modifier = Modifier.size(50.dp).layoutId("thumbnail").padding(5.dp)
                 )
             }
+
             Text(text = fileViewModel.fileName,
                 style = TextStyle(color = MaterialTheme.colors.onSecondary,
                 fontWeight = FontWeight.Bold, fontSize = 15.sp), maxLines = 1,

@@ -9,7 +9,9 @@
         <entry key="../../../layout/compose-model-1662303087125.xml" value="1.0" />
         <entry key="app/src/main/res/drawable/ic_arrow_back.xml" value="0.1" />
         <entry key="app/src/main/res/drawable/ic_baseline_folder_24.xml" value="0.1" />
+        <entry key="app/src/main/res/drawable/ic_fold.xml" value="0.1" />
         <entry key="app/src/main/res/drawable/ic_play_video.xml" value="0.1" />
+        <entry key="app/src/main/res/drawable/ic_unfold.xml" value="0.1" />
       </map>
     </option>
   </component>

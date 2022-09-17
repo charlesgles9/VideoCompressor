@@ -19,6 +19,7 @@ class AlbumViewModel() :ViewModel(){
    private lateinit var map:HashMap<String,MutableList<File>>
    var files =mutableStateListOf<FileObjectViewModel>()
    var directory=""
+   var isLoaded=false
     fun isEmpty():Boolean{
         return files.isEmpty()
     }
@@ -61,7 +62,9 @@ class AlbumViewModel() :ViewModel(){
     }
 
     fun fetchFiles(foldersOnly: Boolean =true,context: Context){
+
         viewModelScope.launch {
+            isLoaded=true
             val data= mutableListOf<FileObjectViewModel>()
             withContext(Dispatchers.Default) {
                 map= FileUtility.fetchVideos(context)
