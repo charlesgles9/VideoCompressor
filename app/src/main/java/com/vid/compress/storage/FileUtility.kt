@@ -32,11 +32,13 @@ class FileUtility {
           while (!cursor.isAfterLast) {
               val path = cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media.DATA))
               val file=File(path)
-              val np= map[file.parent!!]
-              if(np!=null)
-                  np.add(file)
-              else
-                  map[file.parent!!] =mutableListOf(file)
+              if(file.exists() and (file.length()!=0L)) {
+                  val np = map[file.parent!!]
+                  if (np != null)
+                      np.add(file)
+                  else
+                      map[file.parent!!] = mutableListOf(file)
+              }
               cursor.moveToNext()
           }
           return map

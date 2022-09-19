@@ -11,7 +11,6 @@ import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
@@ -19,7 +18,6 @@ import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
@@ -36,15 +34,6 @@ import com.vid.compress.storage.FileObjectViewModel
 @Composable
 fun albumList(album:AlbumViewModel, state:LazyListState,scrollInfo: ScrollInfo){
     val first by derivedStateOf { state.firstVisibleItemIndex}
-    if(!scrollInfo.isEqualTo(first)){
-        val last=first+ remember { derivedStateOf { state.layoutInfo.visibleItemsInfo.size+5 } }.value
-       for(i in first until last){
-          if(!album.isEmpty()&&album.size()>i){
-              scrollInfo.firstVisibleItem=first
-              album.get(i).loadVideoDetails()
-        }
-      }
-    }
     LazyColumn(modifier = Modifier.fillMaxSize(), state = state){
 
         if(album.directory!="")
@@ -97,14 +86,14 @@ fun moveBack(album: AlbumViewModel){
 }
 
 @Composable
-fun albumItem(fileViewModel: FileObjectViewModel,album: AlbumViewModel){
+fun albumItem(file: FileObjectViewModel, album: AlbumViewModel){
 
     BoxWithConstraints (modifier =
     Modifier
         .fillMaxWidth()
         .clickable {
-            if (fileViewModel.isFolder())
-                album.setFolder(fileViewModel.filePath)
+            if (file.isFolder())
+                album.setFolder(file.filePath)
 
         }){
       val constraints=  ConstraintSet {
@@ -131,10 +120,10 @@ fun albumItem(fileViewModel: FileObjectViewModel,album: AlbumViewModel){
            }
        }
         ConstraintLayout(constraints, modifier = Modifier.fillMaxWidth()) {
-            if(fileViewModel.isFolder()) {
+            if(file.isFolder()) {
                 Image(
                     painter = painterResource(
-                        id = if (fileViewModel.isFolder()) R.drawable.ic_folder
+                        id = if (file.isFolder()) R.drawable.ic_folder
                         else
                             R.drawable.ic_play_video_dark
                     ),
@@ -145,7 +134,7 @@ fun albumItem(fileViewModel: FileObjectViewModel,album: AlbumViewModel){
                         .size(50.dp)
                 )
             }else {
-                GlideImage(imageModel = fileViewModel.filePath,
+                GlideImage(imageModel = file.filePath,
                     imageOptions = ImageOptions(
                         alignment = Alignment.Center,
                         contentScale = ContentScale.Crop
@@ -159,19 +148,19 @@ fun albumItem(fileViewModel: FileObjectViewModel,album: AlbumViewModel){
                 )
             }
 
-            Text(text = fileViewModel.fileName,
+            Text(text = file.fileName,
                 style = TextStyle(color = MaterialTheme.colors.onSecondary,
                 fontWeight = FontWeight.Bold, fontSize = 15.sp), maxLines = 1,
                 modifier = Modifier
                     .fillMaxWidth(0.3f)
                     .layoutId("directoryName"))
-            Text(text = fileViewModel.filePath,
+            Text(text = file.filePath,
                  style= TextStyle(color = MaterialTheme.colors.onSecondary,
                  fontWeight = FontWeight.Normal, fontSize = 11.sp), maxLines = 1,
                  modifier = Modifier
                      .fillMaxWidth(0.5f)
                      .layoutId("directoryPath"))
-            Text(text = fileViewModel.directoryCount,
+            Text(text = file.directoryCount,
                 style= TextStyle(color = MaterialTheme.colors.onSecondary,
                     fontWeight = FontWeight.Normal, fontSize = 10.sp), maxLines = 1,
                 modifier = Modifier
@@ -181,5 +170,6 @@ fun albumItem(fileViewModel: FileObjectViewModel,album: AlbumViewModel){
 
         }
     }
+    file.loadVideoDetails()
 
 }

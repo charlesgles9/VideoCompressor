@@ -18,6 +18,7 @@ import java.io.File
 class AlbumViewModel() :ViewModel(){
    private lateinit var map:HashMap<String,MutableList<File>>
    var files =mutableStateListOf<FileObjectViewModel>()
+   var selected= mutableStateListOf<FileObjectViewModel>()
    var directory=""
    var isLoaded=false
     fun isEmpty():Boolean{
@@ -30,6 +31,23 @@ class AlbumViewModel() :ViewModel(){
 
     fun get(index:Int):FileObjectViewModel{
         return files[index]
+    }
+
+    fun addSelectFile(file: FileObjectViewModel){
+        selected.add(file)
+    }
+
+    fun removeSelectFile(file: FileObjectViewModel){
+        selected.removeAll{ it.filePath.equals(file.filePath) }
+    }
+
+    fun clearSelected(){
+        selected.forEach { file->file.selected=false }
+        selected.clear()
+    }
+
+    fun isSelectActive():Boolean{
+        return selected.isNotEmpty()
     }
 
     fun setFolder(key:String){
@@ -61,6 +79,7 @@ class AlbumViewModel() :ViewModel(){
 
     }
 
+
     fun fetchFiles(foldersOnly: Boolean =true,context: Context){
 
         viewModelScope.launch {
@@ -80,6 +99,7 @@ class AlbumViewModel() :ViewModel(){
                         }
                     }
                 }
+                data.sortBy {File(it.filePath).lastModified() }
             }
             files.addAll(data)
         }
@@ -90,12 +110,12 @@ class AlbumViewModel() :ViewModel(){
 
 }
 
-fun <T>SnapshotStateList<T>.updateAlbum(newAlbum:List<T>){
+fun <T>SnapshotStateList<T>.update(newAlbum:List<T>){
     clear()
     addAll(newAlbum)
 }
 
-fun <T>SnapshotStateList<T>.updateAlbum(item:T){
+fun <T>SnapshotStateList<T>.update(item:T){
     add(item)
 }
 
