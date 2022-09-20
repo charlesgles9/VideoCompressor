@@ -1,7 +1,10 @@
 package com.vid.compress
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.content.Context
+import android.content.Intent
+import android.graphics.Bitmap
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -27,6 +30,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.layoutId
@@ -46,6 +51,8 @@ import com.bumptech.glide.request.RequestOptions
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.rememberPagerState
+import com.google.android.exoplayer2.ExoPlayerLibraryInfo
+import com.google.android.exoplayer2.Player
 import com.skydoves.landscapist.glide.GlideImage
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.glide.GlideImage
@@ -87,17 +94,7 @@ private val homeAlbum=AlbumViewModel()
 @SuppressLint("UnrememberedMutableState")
 @Composable
 fun FileList(album:AlbumViewModel,state:LazyGridState,scrollInfo: ScrollInfo,context: Context){
-
-      val columnCount=2
-      val first by derivedStateOf { state.firstVisibleItemIndex}
-     /* if(!scrollInfo.isEqualTo(first)){
-          val last=first+remember { derivedStateOf { state.layoutInfo.visibleItemsInfo.size+columnCount*2 } }.value
-              if(!album.isEmpty()){
-                  scrollInfo.firstVisibleItem=first
-                //  album.loadVideoDetails(first*columnCount,last*columnCount)
-          }
-      }*/
-
+    val columnCount=2
     val slideOptions= remember { mutableStateOf(false) }
     val sliderWidth= animateDpAsState(targetValue =if(slideOptions.value) 90.dp else 0.dp )
     val constraints= ConstraintSet {
@@ -156,7 +153,7 @@ fun FileList(album:AlbumViewModel,state:LazyGridState,scrollInfo: ScrollInfo,con
 }
 
 @Composable
-fun BottomNavigationOptions(){
+fun BottomNavigationOptions(context: Activity){
 
     val hideMenu= remember { mutableStateOf(false)}
     val slideUpDown= animateDpAsState(targetValue = if(hideMenu.value) 60.dp else 0.dp)
@@ -185,7 +182,8 @@ fun BottomNavigationOptions(){
         .fillMaxWidth()
         .background(color = MaterialTheme.colors.primary)
         .height(slideUpDown.value)
-        .padding(top = 10.dp).clickable {  }, constraintSet = constraints) {
+        .padding(top = 10.dp)
+        .clickable { }, constraintSet = constraints) {
 
         hideMenu.value= homeAlbum.isSelectActive()
         Image(painterResource(id = R.drawable.ic_close),
@@ -206,8 +204,22 @@ fun BottomNavigationOptions(){
 
         Row(modifier= Modifier
             .layoutId("modify")
+            .clickable {
+                if (!homeAlbum.isSelectActive())
+                    return@clickable
+                val intent = Intent(
+                    context.applicationContext,
+                    Class.forName("com.vid.compress.ShrinkActivity")
+                )
+                val array = ArrayList<String>()
+                for (i in 0 until homeAlbum.selected.size)
+                    array.add(homeAlbum.selected[i].filePath)
+                intent.putStringArrayListExtra("selected", array)
+                context.startActivity(intent)
+            }
             .padding(end = 10.dp)) {
-            Text( modifier = Modifier.align(Alignment.CenterVertically) ,style = TextStyle(color =Color.White,
+            Text( modifier = Modifier.align(Alignment.CenterVertically)
+                ,style = TextStyle(color =Color.White,
                 fontSize = 13.sp,fontWeight = FontWeight.Bold), text = "Modify")
             Image(painterResource(id = R.drawable.ic_fold),
                 contentDescription = "next", modifier = Modifier
@@ -216,28 +228,26 @@ fun BottomNavigationOptions(){
         }
 
         }
-    
+
+
 }
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun FileCard(file:FileObjectViewModel,context: Context,album: AlbumViewModel){
 
-     Card(elevation = 5.dp, modifier = Modifier
-         .padding(1.dp)
-         .combinedClickable(onClick = {
-             file.selected = !file.selected
-             if (file.selected) {
-                 album.addSelectFile(file)
-             } else {
-                 album.removeSelectFile(file)
-             }
+         Box(modifier = Modifier
+             .padding(1.dp).combinedClickable(onClick = {
+                 file.selected = !file.selected
+                 if (file.selected) {
+                     album.addSelectFile(file)
+                 } else {
+                     album.removeSelectFile(file)
+                 }
 
-         }, onLongClick = {})
-         .border(width = 5.dp, color = if (file.selected) SelectColor else Color.Transparent)) {
-         Box {
+             }, onLongClick = {}).border(width = 5.dp, color = if (file.selected) SelectColor else Color.Transparent)) {
              GlideImage(imageModel = file.filePath,
                  imageOptions = ImageOptions(alignment = Alignment.Center,
-                     contentScale = ContentScale.Crop),
+                     contentScale = ContentScale.Crop), previewPlaceholder =R.drawable.ic_play_video_dark ,
                  requestOptions = {
                      RequestOptions().placeholder(context.getDrawable(R.drawable.ic_play_video_dark)).override(100,100).diskCacheStrategy(
                          DiskCacheStrategy.ALL).centerCrop()
@@ -272,22 +282,22 @@ fun FileCard(file:FileObjectViewModel,context: Context,album: AlbumViewModel){
                          fontWeight = FontWeight.Normal))
              }
          }
-     }
 
       file.loadVideoDetails()
+
 }
 
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
-fun ToolBar(context: Context){
+fun ToolBar(context: Activity){
     val scope= rememberCoroutineScope()
     val scaffoldState= rememberScaffoldState()
     Scaffold (
         scaffoldState=scaffoldState,
         drawerContent = {DrawerView()},
-        bottomBar = { BottomNavigationOptions()},
+        bottomBar = { BottomNavigationOptions(context)},
         topBar = {
-        TopAppBar(title = { Text(text = "Compress")},
+        TopAppBar(title = { Text(text = "Compress", fontSize = 15.sp)},
                   navigationIcon = {
                       IconButton(onClick = {
                           scope.launch {
@@ -304,7 +314,7 @@ fun ToolBar(context: Context){
                         Icon(
                             painter = painterResource(id = R.drawable.ic_videocam),
                             contentDescription = "Play",
-                            modifier = Modifier.padding(start = 20.dp, end = 20.dp))
+                            modifier = Modifier.padding(start = 10.dp, end = 20.dp))
                         Icon(
                             Icons.Filled.Search,
                             contentDescription = "Search",
@@ -312,7 +322,7 @@ fun ToolBar(context: Context){
                         Icon(
                             Icons.Filled.MoreVert,
                             contentDescription = "More",
-                            modifier = Modifier.padding(start = 20.dp, end = 20.dp))
+                            modifier = Modifier.padding(start = 20.dp, end = 10.dp))
                     })
         }){
 

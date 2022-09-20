@@ -15,7 +15,7 @@ class FileUtility {
       const val CAT="LogFile"
 
       val videoFilter= FilenameFilter { dir, name ->
-             return@FilenameFilter getExtension(name).toLowerCase() == ".mp4"
+             return@FilenameFilter getExtension(name).toLowerCase() == ".mp4"||getExtension(name).toLowerCase() == ".mp4"
       }
         // arranges all the files folder wise
       fun fetchVideos(context: Context):HashMap<String,MutableList<File>>{
