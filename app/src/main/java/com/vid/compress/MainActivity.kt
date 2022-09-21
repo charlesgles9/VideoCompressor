@@ -234,9 +234,9 @@ fun BottomNavigationOptions(context: Activity){
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun FileCard(file:FileObjectViewModel,context: Context,album: AlbumViewModel){
-
          Box(modifier = Modifier
-             .padding(1.dp).combinedClickable(onClick = {
+             .padding(1.dp)
+             .combinedClickable(onClick = {
                  file.selected = !file.selected
                  if (file.selected) {
                      album.addSelectFile(file)
@@ -244,8 +244,9 @@ fun FileCard(file:FileObjectViewModel,context: Context,album: AlbumViewModel){
                      album.removeSelectFile(file)
                  }
 
-             }, onLongClick = {}).border(width = 5.dp, color = if (file.selected) SelectColor else Color.Transparent)) {
-             GlideImage(imageModel = file.filePath,
+             }, onLongClick = {})
+             .border(width = 5.dp, color = if (file.selected) SelectColor else Color.Transparent)) {
+         /*    GlideImage(imageModel = file.filePath,
                  imageOptions = ImageOptions(alignment = Alignment.Center,
                      contentScale = ContentScale.Crop), previewPlaceholder =R.drawable.ic_play_video_dark ,
                  requestOptions = {
@@ -253,8 +254,18 @@ fun FileCard(file:FileObjectViewModel,context: Context,album: AlbumViewModel){
                          DiskCacheStrategy.ALL).centerCrop()
                  }, modifier = Modifier
                      .align(Alignment.Center)
-                     .sizeIn(100.dp, 100.dp, Dp.Unspecified, Dp.Unspecified))
-
+                     .sizeIn(100.dp, 100.dp, Dp.Unspecified, Dp.Unspecified))*/
+             if(file.thumbnailLoaded){
+                 Image(bitmap = file.thumbnail, contentDescription ="thumbnail",
+                     modifier = Modifier
+                         .align(Alignment.Center)
+                         .fillMaxWidth(), contentScale = ContentScale.Crop)
+             }else{
+                 Image(painter = painterResource(id = R.drawable.ic_play_video_dark), contentDescription ="thumbnail",
+                     modifier = Modifier
+                         .align(Alignment.Center)
+                         .fillMaxWidth(), contentScale = ContentScale.Crop)
+             }
              Column(
                  modifier = Modifier
                      .align(Alignment.BottomStart)
@@ -284,6 +295,7 @@ fun FileCard(file:FileObjectViewModel,context: Context,album: AlbumViewModel){
          }
 
       file.loadVideoDetails()
+      file.loadBitmap(context)
 
 }
 
@@ -357,7 +369,7 @@ fun HorizontalPagerView(context: Context){
                     val album=AlbumViewModel()
                     val scrollInfo=ScrollInfo(-1)
                         album.fetchFiles(context=context)
-                    albumList(album,state,scrollInfo)
+                    albumList(context,album,state,scrollInfo)
 
                 }
             }

@@ -1,6 +1,7 @@
 package com.vid.compress.ui.page
 
 import android.annotation.SuppressLint
+import android.content.Context
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -18,6 +19,7 @@ import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
@@ -32,7 +34,7 @@ import com.vid.compress.storage.FileObjectViewModel
 
 @SuppressLint("UnrememberedMutableState")
 @Composable
-fun albumList(album:AlbumViewModel, state:LazyListState,scrollInfo: ScrollInfo){
+fun albumList(context: Context,album:AlbumViewModel, state:LazyListState,scrollInfo: ScrollInfo){
     val first by derivedStateOf { state.firstVisibleItemIndex}
     LazyColumn(modifier = Modifier.fillMaxSize(), state = state){
 
@@ -42,7 +44,7 @@ fun albumList(album:AlbumViewModel, state:LazyListState,scrollInfo: ScrollInfo){
         }
 
         itemsIndexed(album.files){ index, item ->
-            albumItem(item, album)
+            albumItem(context,item, album)
             if(index<album.files.lastIndex)
             Divider(color = MaterialTheme.colors.onSecondary,
                 thickness = 0.5.dp)
@@ -86,7 +88,7 @@ fun moveBack(album: AlbumViewModel){
 }
 
 @Composable
-fun albumItem(file: FileObjectViewModel, album: AlbumViewModel){
+fun albumItem(context:Context,file: FileObjectViewModel, album: AlbumViewModel){
 
     BoxWithConstraints (modifier =
     Modifier
@@ -134,31 +136,30 @@ fun albumItem(file: FileObjectViewModel, album: AlbumViewModel){
                         .size(50.dp)
                 )
             }else {
-                GlideImage(imageModel = file.filePath,
-                    imageOptions = ImageOptions(
-                        alignment = Alignment.Center,
-                        contentScale = ContentScale.Crop
-                    ),
-                    requestOptions = {
-                        RequestOptions().placeholder(R.drawable.ic_play_video_dark)
-                            .override(100, 100).diskCacheStrategy(
-                            DiskCacheStrategy.ALL
-                        ).centerCrop()
-                    }, modifier = Modifier.size(50.dp).layoutId("thumbnail").padding(5.dp)
-                )
+                if(file.thumbnailLoaded){
+                    Image(bitmap = file.thumbnail, contentDescription ="thumbnail",
+                        modifier = Modifier
+                            .layoutId("thumbnail").padding(5.dp)
+                            .size(50.dp), contentScale = ContentScale.Crop)
+                }else{
+                    Image(painter = painterResource(id = R.drawable.ic_play_video_dark), contentDescription ="thumbnail",
+                        modifier = Modifier
+                            .layoutId("thumbnail").padding(5.dp)
+                            .size(50.dp), contentScale = ContentScale.Crop)
+                }
             }
 
             Text(text = file.fileName,
                 style = TextStyle(color = MaterialTheme.colors.onSecondary,
-                fontWeight = FontWeight.Bold, fontSize = 15.sp), maxLines = 1,
+                fontWeight = FontWeight.Bold, fontSize = 15.sp), maxLines = 1, overflow = TextOverflow.Ellipsis,
                 modifier = Modifier
-                    .fillMaxWidth(0.3f)
+                    .fillMaxWidth(0.8f).padding(end = 5.dp)
                     .layoutId("directoryName"))
             Text(text = file.filePath,
                  style= TextStyle(color = MaterialTheme.colors.onSecondary,
-                 fontWeight = FontWeight.Normal, fontSize = 11.sp), maxLines = 1,
+                 fontWeight = FontWeight.Normal, fontSize = 11.sp), maxLines = 1,overflow = TextOverflow.Ellipsis,
                  modifier = Modifier
-                     .fillMaxWidth(0.5f)
+                     .fillMaxWidth(0.5f).padding(end = 5.dp)
                      .layoutId("directoryPath"))
             Text(text = file.directoryCount,
                 style= TextStyle(color = MaterialTheme.colors.onSecondary,
@@ -171,5 +172,7 @@ fun albumItem(file: FileObjectViewModel, album: AlbumViewModel){
         }
     }
     file.loadVideoDetails()
+    if(!file.isFolder())
+    file.loadBitmap(context)
 
 }

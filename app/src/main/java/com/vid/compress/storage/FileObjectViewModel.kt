@@ -1,5 +1,6 @@
 package com.vid.compress.storage
 import android.content.Context
+import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
 import android.media.MediaMetadataRetriever
 import android.media.MediaPlayer
@@ -31,8 +32,8 @@ class FileObjectViewModel(private val file:File) :ViewModel(){
     var directoryCount by mutableStateOf("0")
     var videoLength by mutableStateOf("00:00:00")
     var videoResolution by mutableStateOf(Pair<Any,Any>(0,0))
-    var thumbnail = MutableLiveData<Any>(R.drawable.ic_play_video_dark)
-    private var thumbnailLoaded=false
+    lateinit var thumbnail:ImageBitmap
+    var thumbnailLoaded by mutableStateOf(false)
     constructor(path:String):this(File(path)){}
     fun toggleSelected(){
         selected=!selected
@@ -42,6 +43,17 @@ class FileObjectViewModel(private val file:File) :ViewModel(){
         return file.isDirectory
     }
 
+    fun loadBitmap(context: Context){
+        if(!thumbnailLoaded)
+        viewModelScope.launch {
+            withContext(Dispatchers.Default){
+                val bmp=Glide.with(context).load(file).submit(100,100).get().toBitmap()
+                val scaled=Bitmap.createScaledBitmap(bmp,100,100,false)
+                thumbnail=scaled.asImageBitmap()
+                thumbnailLoaded=true
+            }
+        }
+    }
 
     fun loadVideoDetails(){
         if(detailsLoaded)
