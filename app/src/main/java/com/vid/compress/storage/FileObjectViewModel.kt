@@ -47,10 +47,16 @@ class FileObjectViewModel(private val file:File) :ViewModel(){
         if(!thumbnailLoaded)
         viewModelScope.launch {
             withContext(Dispatchers.Default){
-                val bmp=Glide.with(context).load(file).submit(100,100).get().toBitmap()
-                val scaled=Bitmap.createScaledBitmap(bmp,100,100,false)
-                thumbnail=scaled.asImageBitmap()
-                thumbnailLoaded=true
+                try {
+                    val bmp = Glide.with(context).load(file).submit(100, 100).get().toBitmap()
+
+                    val scaled = Bitmap.createScaledBitmap(bmp, 100, 100, false)
+                    thumbnail = scaled.asImageBitmap()
+                    thumbnailLoaded=true
+                }catch (e:Exception){
+                    thumbnailLoaded=false
+                }
+
             }
         }
     }

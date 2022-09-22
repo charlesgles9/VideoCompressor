@@ -36,6 +36,8 @@ import com.vid.compress.storage.FileObjectViewModel
 @Composable
 fun albumList(context: Context,album:AlbumViewModel, state:LazyListState,scrollInfo: ScrollInfo){
     val first by derivedStateOf { state.firstVisibleItemIndex}
+
+
     LazyColumn(modifier = Modifier.fillMaxSize(), state = state){
 
         if(album.directory!="")

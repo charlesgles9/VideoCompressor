@@ -3,14 +3,10 @@ package com.vid.compress
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
-import android.media.MediaPlayer
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.*
-import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.gestures.rememberScrollableState
-import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
@@ -46,11 +42,8 @@ import com.vid.compress.storage.FileObjectViewModel
 import com.vid.compress.storage.FileUtility
 import com.vid.compress.ui.theme.VideoCompressorTheme
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import java.io.File
-import kotlin.coroutines.coroutineContext
-import kotlin.reflect.KProperty
 
 class ShrinkActivity:ComponentActivity() {
 
@@ -242,7 +235,7 @@ fun HorizontalTabs(files:ArrayList<FileObjectViewModel>,state:PagerState,scope:C
                     state.animateScrollToPage(index)
                 }
             }) {
-                PagerTabs(file = file, active = state.currentPage == index)
+                PagerTabs(file = file)
             }
         }
 
@@ -252,14 +245,14 @@ fun HorizontalTabs(files:ArrayList<FileObjectViewModel>,state:PagerState,scope:C
 }
 
 @Composable
-fun PagerTabs(file:FileObjectViewModel,active:Boolean){
+fun PagerTabs(file:FileObjectViewModel){
 
     Card(modifier = Modifier.padding(2.dp), elevation = 5.dp) {
         GlideImage(
             imageModel = file.filePath, modifier = Modifier
                 .size(80.dp)
                 .padding(5.dp), requestOptions = {
-                RequestOptions().override(60,60).diskCacheStrategy(
+                RequestOptions().override(90,90).diskCacheStrategy(
                     DiskCacheStrategy.ALL).fitCenter() })
     }
 

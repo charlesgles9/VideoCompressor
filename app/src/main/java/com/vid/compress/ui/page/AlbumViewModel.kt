@@ -1,26 +1,29 @@
 package com.vid.compress.ui.page
 
 import android.content.Context
-import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.*
 import androidx.lifecycle.ViewModel
 import com.vid.compress.storage.FileObjectViewModel
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.compose.ui.text.toLowerCase
 import androidx.lifecycle.viewModelScope
 import com.vid.compress.storage.FileUtility
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.util.*
+import kotlin.collections.HashMap
 
 class AlbumViewModel() :ViewModel(){
    private lateinit var map:HashMap<String,MutableList<File>>
+   private var filterBucket= mutableListOf<FileObjectViewModel>()
    var files =mutableStateListOf<FileObjectViewModel>()
    var selected= mutableStateListOf<FileObjectViewModel>()
+   var activateSearch by mutableStateOf(false)
    var directory=""
    var isLoaded=false
+   var active=false
     fun isEmpty():Boolean{
         return files.isEmpty()
     }
@@ -48,6 +51,23 @@ class AlbumViewModel() :ViewModel(){
 
     fun isSelectActive():Boolean{
         return selected.isNotEmpty()
+    }
+
+    fun filter(phrase:String){
+        files.removeAll {file->
+            val value=!file.fileName.lowercase(Locale.ROOT).contains(phrase.lowercase(Locale.ROOT))
+              if(value)
+                  filterBucket.add(file)
+            return@removeAll value
+        }
+    }
+
+
+    fun restoreFilter(){
+        if(filterBucket.isNotEmpty()) {
+            files.addAll(filterBucket)
+            filterBucket.clear()
+        }
     }
 
     fun setFolder(key:String){
