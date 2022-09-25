@@ -11,3 +11,4 @@ val Shapes = Shapes(
 
 
 val CustomShape1=RoundedCornerShape(topStart = 5.dp, bottomStart = 5.dp)
+val CustomShape2=RoundedCornerShape(8.dp)

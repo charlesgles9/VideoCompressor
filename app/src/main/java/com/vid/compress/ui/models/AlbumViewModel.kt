@@ -1,13 +1,13 @@
-package com.vid.compress.ui.page
+package com.vid.compress.ui.models
 
 import android.content.Context
 import androidx.compose.runtime.*
 import androidx.lifecycle.ViewModel
-import com.vid.compress.storage.FileObjectViewModel
+import com.vid.compress.ui.models.FileObjectViewModel
 import androidx.compose.runtime.snapshots.SnapshotStateList
-import androidx.compose.ui.text.toLowerCase
 import androidx.lifecycle.viewModelScope
 import com.vid.compress.storage.FileUtility
+import com.vid.compress.ui.callbacks.LoadingCompleteListener
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -23,7 +23,7 @@ class AlbumViewModel() :ViewModel(){
    var activateSearch by mutableStateOf(false)
    var directory=""
    var isLoaded=false
-   var active=false
+
     fun isEmpty():Boolean{
         return files.isEmpty()
     }
@@ -32,7 +32,7 @@ class AlbumViewModel() :ViewModel(){
         return files.size
     }
 
-    fun get(index:Int):FileObjectViewModel{
+    fun get(index:Int): FileObjectViewModel {
         return files[index]
     }
 
@@ -100,10 +100,11 @@ class AlbumViewModel() :ViewModel(){
     }
 
 
-    fun fetchFiles(foldersOnly: Boolean =true,context: Context){
+    fun fetchFiles(foldersOnly: Boolean =true,context: Context,listener:LoadingCompleteListener){
 
         viewModelScope.launch {
             isLoaded=true
+            listener.started()
             val data= mutableListOf<FileObjectViewModel>()
             withContext(Dispatchers.Default) {
                 map= FileUtility.fetchVideos(context)
@@ -122,12 +123,26 @@ class AlbumViewModel() :ViewModel(){
                 data.sortBy {File(it.filePath).lastModified() }
             }
             files.addAll(data)
+            listener.finished()
         }
     }
 
-
-
-
+    private var selectFlag=false
+    fun selectAll() {
+        selectFlag = !selectFlag
+        if (selectFlag) {
+             selected.clear()
+            files.forEach { file ->
+                file.selected = true
+                addSelectFile(file)
+            }
+        } else {
+            files.forEach { file ->
+                file.selected = false
+            }
+            selected.clear()
+        }
+    }
 }
 
 fun <T>SnapshotStateList<T>.update(newAlbum:List<T>){

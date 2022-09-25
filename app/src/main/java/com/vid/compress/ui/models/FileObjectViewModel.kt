@@ -1,7 +1,6 @@
-package com.vid.compress.storage
+package com.vid.compress.ui.models
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.drawable.Drawable
 import android.media.MediaMetadataRetriever
 import android.media.MediaPlayer
 import androidx.compose.runtime.getValue
@@ -9,14 +8,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.res.painterResource
 import androidx.core.graphics.drawable.toBitmap
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bumptech.glide.Glide
-import com.vid.compress.R
+import com.vid.compress.storage.Disk
+import com.vid.compress.storage.FileUtility
 import com.vid.compress.util.DateUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -35,6 +32,7 @@ class FileObjectViewModel(private val file:File) :ViewModel(){
     lateinit var thumbnail:ImageBitmap
     var thumbnailLoaded by mutableStateOf(false)
     constructor(path:String):this(File(path)){}
+
     fun toggleSelected(){
         selected=!selected
     }

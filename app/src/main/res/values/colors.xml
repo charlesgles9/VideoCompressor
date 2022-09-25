@@ -8,4 +8,5 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="LighterBlue">#FF59B3F7</color>
+    <color name="DarkStatusBar">#2C2C2C</color>
 </resources>

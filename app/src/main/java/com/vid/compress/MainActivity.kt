@@ -5,7 +5,6 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.core.animateDpAsState
@@ -14,15 +13,13 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
 import androidx.compose.foundation.lazy.grid.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.CornerBasedShape
-import androidx.compose.foundation.shape.CornerSize
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.material.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.*
 
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -44,8 +41,9 @@ import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.rememberPagerState
 import com.vid.compress.permisions.PermissionHelper
-import com.vid.compress.storage.FileObjectViewModel
-import com.vid.compress.ui.page.AlbumViewModel
+import com.vid.compress.ui.callbacks.LoadingCompleteListener
+import com.vid.compress.ui.models.FileObjectViewModel
+import com.vid.compress.ui.models.AlbumViewModel
 import com.vid.compress.ui.page.DrawerView
 import com.vid.compress.ui.page.ScrollInfo
 import com.vid.compress.ui.page.albumList
@@ -58,16 +56,20 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         PermissionHelper.grantStorageReadWrite(this)
 
+
+
         setContent {
-            VideoCompressorTheme(darkTheme = false) {
+            VideoCompressorTheme(darkTheme = false,this) {
                 Surface(modifier = Modifier.fillMaxSize(),
                         shape = MaterialTheme.shapes.medium, elevation = 1.dp) {
                     ToolBar(this)
+
 
                 }
             }
         }
     }
+
 }
 
 
@@ -104,6 +106,113 @@ fun FileList(album:AlbumViewModel,state:LazyGridState,scrollInfo: ScrollInfo,con
             .fillMaxHeight()
             .width(sliderWidth.value)
             .layoutId("options")) {
+
+
+            Text(text = "Items: " + home.selected.size + "/" + home.size(),
+                modifier = Modifier
+                    .padding(bottom = 50.dp, top = 10.dp)
+                    .align(Alignment.CenterHorizontally),
+                style= TextStyle(color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold))
+
+            Box(modifier= Modifier
+                .size(50.dp)
+                .align(Alignment.CenterHorizontally)
+                .padding(bottom = 10.dp)
+                .clickable {
+                    val intent = Intent(
+                        context.applicationContext,
+                        Class.forName("com.vid.compress.VideoPlayerActivity")
+                    )
+
+                    val list = ArrayList<String>()
+                    if (currentAlbumView == 0) {
+                        home.selected.forEach { file ->
+                            list.add(file.filePath)
+                        }
+                    } else if (currentAlbumView == 1) {
+                        album.selected.forEach { file ->
+                            list.add(file.filePath)
+                        }
+                    }
+                    intent.putStringArrayListExtra("uriList", list)
+                    context.startActivity(intent)
+
+                }
+                .background(color = IconBackground, shape = CustomShape2) ) {
+                Icon(Icons.Outlined.PlayArrow, contentDescription = "PlayAll",
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .size(24.dp), tint = Color.White)
+            }
+
+            Box(modifier= Modifier
+                .size(50.dp)
+                .align(Alignment.CenterHorizontally)
+                .padding(bottom = 10.dp)
+                .clickable {
+                    if (currentAlbumView == 0)
+                        home.selectAll()
+                    else if (currentAlbumView == 1)
+                        album.selectAll()
+                }
+                .background(color = IconBackground, shape = CustomShape2) ) {
+                Icon(painter = painterResource(id = R.drawable.ic_select_all), contentDescription = "selectAll",
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .size(24.dp), tint = Color.White)
+            }
+
+            Box(modifier= Modifier
+                .size(50.dp)
+                .align(Alignment.CenterHorizontally)
+                .padding(bottom = 10.dp)
+                .clickable { /*send intent*/ }
+                .background(color = IconBackground, shape = CustomShape2) ) {
+                Icon(Icons.Outlined.Send, contentDescription = "send",
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .size(24.dp), tint = Color.White)
+            }
+
+
+
+            Box(modifier= Modifier
+                .size(50.dp)
+                .align(Alignment.CenterHorizontally)
+                .padding(bottom = 10.dp)
+                .clickable { /*share intent*/ }
+                .background(color = IconBackground, shape = CustomShape2) ) {
+                Icon(Icons.Outlined.Share, contentDescription = "share",
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .size(24.dp),tint = Color.White)
+            }
+
+            Box(modifier= Modifier
+                .size(50.dp)
+                .align(Alignment.CenterHorizontally)
+                .padding(bottom = 10.dp)
+                .clickable { /*file info*/ }
+                .background(color = IconBackground, shape = CustomShape2) ) {
+                Icon(Icons.Outlined.Info, contentDescription = "Info",
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .size(24.dp),tint = Color.White)
+            }
+
+            Box(modifier= Modifier
+                .size(50.dp)
+                .align(Alignment.CenterHorizontally)
+                .padding(bottom = 10.dp)
+                .clickable { /*delete file*/ }
+                .background(color = IconBackground, shape = CustomShape2) ) {
+                Icon(Icons.Outlined.Delete, contentDescription = "Delete",
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .size(24.dp),tint = Color.White)
+            }
+
+
         }
 
         LazyVerticalGrid(columns = GridCells.Fixed(columnCount),
@@ -216,7 +325,7 @@ fun BottomNavigationOptions(context: Activity){
 }
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun FileCard(file:FileObjectViewModel,context: Context,album: AlbumViewModel){
+fun FileCard(file: FileObjectViewModel, context: Context, album: AlbumViewModel){
          Box(modifier = Modifier
              .padding(1.dp)
              .combinedClickable(onClick = {
@@ -227,7 +336,14 @@ fun FileCard(file:FileObjectViewModel,context: Context,album: AlbumViewModel){
                      album.removeSelectFile(file)
                  }
 
-             }, onLongClick = {})
+             }, onLongClick = {
+
+                 val intent = Intent(context, Class.forName("com.vid.compress.VideoPlayerActivity"))
+                 val list = ArrayList<String>()
+                 list.add(file.filePath)
+                 intent.putStringArrayListExtra("uriList", list)
+                 context.startActivity(intent)
+             })
              .border(width = 5.dp, color = if (file.selected) SelectColor else Color.Transparent)) {
 
              if(file.thumbnailLoaded){
@@ -276,9 +392,7 @@ fun FileCard(file:FileObjectViewModel,context: Context,album: AlbumViewModel){
 
 @Composable
 fun SearchView(){
-    val searchPhrase= remember {
-        mutableStateOf("")
-    }
+    val searchPhrase= remember { mutableStateOf("") }
     OutlinedTextField(value = searchPhrase.value,
         onValueChange = { value -> searchPhrase.value = value },
         label = { Text(text = "search") },
@@ -307,7 +421,8 @@ fun SearchView(){
     , keyboardActions = KeyboardActions(onSearch = {
             if(currentAlbumView==0)
             home.filter(phrase = searchPhrase.value)
-            else if(currentAlbumView==1)
+             else
+                if(currentAlbumView==1)
             album.filter(phrase = searchPhrase.value)
 
     })
@@ -349,10 +464,11 @@ fun ToolBar(context: Activity){
                             modifier = Modifier
                                 .padding(start = 20.dp, end = 20.dp)
                                 .clickable {
-                                    if(currentAlbumView==0)
-                                    home.activateSearch = !home.activateSearch
-                                    else if(currentAlbumView==1)
-                                    album.activateSearch= !album.activateSearch
+                                    if (currentAlbumView == 0)
+                                        home.activateSearch = !home.activateSearch
+                                    else
+                                        if (currentAlbumView == 1)
+                                            album.activateSearch = !album.activateSearch
                                 })
                         Icon(
                             Icons.Filled.MoreVert,
@@ -367,11 +483,27 @@ fun ToolBar(context: Activity){
     }
 }
 
+
+@Composable
+fun loadingView(modifier:Modifier){
+    Card(elevation = 10.dp, modifier =modifier) {
+        Column(modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 15.dp, bottom = 15.dp)) {
+            CircularProgressIndicator( color = LighterBlue,
+                modifier = Modifier.align(Alignment.CenterHorizontally))
+        }
+    }
+}
 @OptIn(ExperimentalPagerApi::class)
 @Composable
 fun HorizontalPagerView(context: Context){
     val  coroutineScope= rememberCoroutineScope()
-
+    val pageState= rememberPagerState()
+    val albumState= rememberLazyListState()
+    val homeState= rememberLazyGridState()
+    val homeLoadingVisible=remember{ mutableStateOf(false)}
+    val albumLoadingVisible= remember { mutableStateOf(false) }
     val constraints= ConstraintSet {
         val pagerLayout=createRefFor("pagerLayout")
         val pagerTabs=createRefFor("pagerTabs")
@@ -383,13 +515,12 @@ fun HorizontalPagerView(context: Context){
         }
 
     }
+
     ConstraintLayout(modifier = Modifier.fillMaxSize(), constraintSet = constraints) {
         
         //create pages
         val size=2
-        val pageState= rememberPagerState()
-        val albumState= rememberLazyListState()
-        val homeState= rememberLazyGridState()
+
 
         val homeScrollInfo=ScrollInfo(-1)
         HorizontalPager(count =size,
@@ -398,21 +529,57 @@ fun HorizontalPagerView(context: Context){
                 
                 0->{
                     if(!home.isLoaded)
-                    home.fetchFiles(context=context,foldersOnly = false)
+                    home.fetchFiles(context=context,foldersOnly = false, listener = object :LoadingCompleteListener{
+                        override fun finished() {
+                            homeLoadingVisible.value=false
+                        }
+
+                        override fun started() {
+                            homeLoadingVisible.value=true
+                        }
+
+                    })
                     album.activateSearch=false
                     album.restoreFilter()
-                    currentAlbumView=0
-                    FileList(home,homeState,homeScrollInfo,context)
+                    currentAlbumView=pageState.currentPage
+                    Box(modifier = Modifier.fillMaxSize()){
+
+                        FileList(home,homeState,homeScrollInfo,context)
+                        //loading indicator
+                        if(homeLoadingVisible.value)
+                           loadingView( modifier = Modifier
+                               .width(250.dp)
+                               .padding(10.dp)
+                               .align(Alignment.Center))
+
+                    }
+
                 }
                 
                 1->{
-                       val scrollInfo=ScrollInfo(-1)
-                        if(!album.isLoaded)
-                        album.fetchFiles(context=context)
-                        home.activateSearch=false
-                        home.restoreFilter()
-                        currentAlbumView=1
-                    albumList(context,album,albumState,scrollInfo)
+                    val scrollInfo=ScrollInfo(-1)
+                    if(!album.isLoaded)
+                        album.fetchFiles(context=context,listener = object :LoadingCompleteListener{
+                            override fun finished() {
+                             albumLoadingVisible.value=false
+                            }
+
+                            override fun started() {
+                                albumLoadingVisible.value=true
+                            }
+                        })
+                    home.activateSearch=false
+                    home.restoreFilter()
+                    currentAlbumView=pageState.currentPage
+                    Box(modifier=Modifier.fillMaxSize()) {
+                        albumList(context,album,albumState,scrollInfo)
+                        //loading indicator
+                        if(albumLoadingVisible.value)
+                            loadingView( modifier = Modifier
+                                .width(250.dp)
+                                .padding(10.dp)
+                                .align(Alignment.Center))
+                    }
 
                 }
             }
@@ -439,6 +606,12 @@ fun HorizontalPagerView(context: Context){
                         pageState.animateScrollToPage(1)
                     }}){
                     Text(text = "Albums", modifier = Modifier.padding(top = 15.dp, bottom = 15.dp),color = Color.White)
+                }
+                Tab(selected = pageState.currentPage==1,
+                    onClick = {coroutineScope.launch {
+                        pageState.animateScrollToPage(1)
+                    }}){
+                    Text(text = "History", modifier = Modifier.padding(top = 15.dp, bottom = 15.dp),color = Color.White)
                 }
             }
 

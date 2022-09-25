@@ -25,7 +25,6 @@ import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
@@ -38,7 +37,7 @@ import com.google.accompanist.pager.PagerState
 import com.google.accompanist.pager.rememberPagerState
 import com.skydoves.landscapist.glide.GlideImage
 import com.vid.compress.storage.Disk
-import com.vid.compress.storage.FileObjectViewModel
+import com.vid.compress.ui.models.FileObjectViewModel
 import com.vid.compress.storage.FileUtility
 import com.vid.compress.ui.theme.VideoCompressorTheme
 import kotlinx.coroutines.CoroutineScope
@@ -50,8 +49,6 @@ class ShrinkActivity:ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-
         val selected=intent.getStringArrayListExtra("selected")
         val files=ArrayList<FileObjectViewModel>()
         if(selected!=null)
@@ -59,7 +56,7 @@ class ShrinkActivity:ComponentActivity() {
         else
             finish()
         setContent {
-            VideoCompressorTheme(darkTheme = false) {
+            VideoCompressorTheme(darkTheme = false,this) {
                 Surface(modifier = Modifier.fillMaxSize(),
                         shape = MaterialTheme.shapes.medium) {
                     Toolbar(context = this,files)
@@ -87,7 +84,7 @@ fun Toolbar(context:Activity,files:ArrayList<FileObjectViewModel>){
 
 
 @Composable
-fun VideoDetails(file:FileObjectViewModel,context:Context){
+fun VideoDetails(file: FileObjectViewModel, context:Context){
     Column(modifier = Modifier.fillMaxWidth()) {
 
         Card(elevation = 10.dp, modifier = Modifier.padding(5.dp)) {
@@ -221,7 +218,7 @@ fun ResolutionPicker(){
 
 @OptIn(ExperimentalPagerApi::class)
 @Composable
-fun HorizontalTabs(files:ArrayList<FileObjectViewModel>,state:PagerState,scope:CoroutineScope){
+fun HorizontalTabs(files:ArrayList<FileObjectViewModel>, state:PagerState, scope:CoroutineScope){
 
     ScrollableTabRow(selectedTabIndex = state.currentPage,
         indicator = { tabPositions ->
@@ -245,7 +242,7 @@ fun HorizontalTabs(files:ArrayList<FileObjectViewModel>,state:PagerState,scope:C
 }
 
 @Composable
-fun PagerTabs(file:FileObjectViewModel){
+fun PagerTabs(file: FileObjectViewModel){
 
     Card(modifier = Modifier.padding(2.dp), elevation = 5.dp) {
         GlideImage(
@@ -259,7 +256,7 @@ fun PagerTabs(file:FileObjectViewModel){
 }
 
 @Composable
-fun VideoLayout(file: FileObjectViewModel,context: Context){
+fun VideoLayout(file: FileObjectViewModel, context: Context){
     val state=LazyListState()
    LazyColumn(state =state  ){
        item {
@@ -275,7 +272,7 @@ fun VideoLayout(file: FileObjectViewModel,context: Context){
 
 @OptIn(ExperimentalPagerApi::class)
 @Composable
-fun PagerView(files:ArrayList<FileObjectViewModel>,context: Context){
+fun PagerView(files:ArrayList<FileObjectViewModel>, context: Context){
     val pageState= rememberPagerState()
     val scope= rememberCoroutineScope()
     Column {

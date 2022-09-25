@@ -12,7 +12,6 @@ import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.layoutId
@@ -24,12 +23,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.ConstraintSet
-import com.bumptech.glide.load.engine.DiskCacheStrategy
-import com.bumptech.glide.request.RequestOptions
-import com.skydoves.landscapist.ImageOptions
-import com.skydoves.landscapist.glide.GlideImage
 import com.vid.compress.R
-import com.vid.compress.storage.FileObjectViewModel
+import com.vid.compress.ui.models.FileObjectViewModel
+import com.vid.compress.ui.models.AlbumViewModel
 
 
 @SuppressLint("UnrememberedMutableState")
@@ -90,7 +86,7 @@ fun moveBack(album: AlbumViewModel){
 }
 
 @Composable
-fun albumItem(context:Context,file: FileObjectViewModel, album: AlbumViewModel){
+fun albumItem(context:Context, file: FileObjectViewModel, album: AlbumViewModel){
 
     BoxWithConstraints (modifier =
     Modifier
