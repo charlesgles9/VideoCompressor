@@ -1,4 +1,4 @@
-package com.vid.compress.ui.page
+package com.vid.compress.ui.pages
 
 import android.annotation.SuppressLint
 import android.content.Context

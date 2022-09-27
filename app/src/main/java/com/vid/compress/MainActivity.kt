@@ -44,9 +44,9 @@ import com.vid.compress.permisions.PermissionHelper
 import com.vid.compress.ui.callbacks.LoadingCompleteListener
 import com.vid.compress.ui.models.FileObjectViewModel
 import com.vid.compress.ui.models.AlbumViewModel
-import com.vid.compress.ui.page.DrawerView
-import com.vid.compress.ui.page.ScrollInfo
-import com.vid.compress.ui.page.albumList
+import com.vid.compress.ui.pages.DrawerView
+import com.vid.compress.ui.pages.ScrollInfo
+import com.vid.compress.ui.pages.albumList
 import com.vid.compress.ui.theme.*
 import kotlinx.coroutines.*
 
@@ -520,8 +520,6 @@ fun HorizontalPagerView(context: Context){
         
         //create pages
         val size=2
-
-
         val homeScrollInfo=ScrollInfo(-1)
         HorizontalPager(count =size,
                         state = pageState, modifier = Modifier.layoutId("pagerLayout")) { currentPage->
