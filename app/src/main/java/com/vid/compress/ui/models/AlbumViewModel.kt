@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import com.vid.compress.ui.models.FileObjectViewModel
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.viewModelScope
+import com.vid.compress.storage.Disk
 import com.vid.compress.storage.FileUtility
 import com.vid.compress.ui.callbacks.LoadingCompleteListener
 import kotlinx.coroutines.Dispatchers
@@ -23,7 +24,8 @@ class AlbumViewModel() :ViewModel(){
    var activateSearch by mutableStateOf(false)
    var directory=""
    var isLoaded=false
-
+   var showProperties= mutableStateOf(false)
+   var selectedSize= mutableStateOf("calculating...")
     fun isEmpty():Boolean{
         return files.isEmpty()
     }
@@ -54,14 +56,31 @@ class AlbumViewModel() :ViewModel(){
     }
 
     fun filter(phrase:String){
-        files.removeAll {file->
-            val value=!file.fileName.lowercase(Locale.ROOT).contains(phrase.lowercase(Locale.ROOT))
-              if(value)
-                  filterBucket.add(file)
+        val removeAll = files.removeAll { file ->
+            val value =
+                !file.fileName.lowercase(Locale.ROOT).contains(phrase.lowercase(Locale.ROOT))
+            if (value) {
+                filterBucket.add(file)
+            }
             return@removeAll value
         }
     }
 
+
+    fun calculateSelectedFileSize(){
+        viewModelScope.launch {
+            var nBytes=0L
+            withContext(Dispatchers.Default){
+
+                selected.forEach { file->
+                    nBytes+= File(file.filePath).length()
+                }
+            }
+            selectedSize.value=Disk.getSize(nBytes)
+        }
+
+
+    }
 
     fun restoreFilter(){
         if(filterBucket.isNotEmpty()) {

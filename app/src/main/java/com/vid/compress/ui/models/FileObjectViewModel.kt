@@ -103,7 +103,7 @@ class FileObjectViewModel(private val file:File) :ViewModel(){
             e.printStackTrace()
         }
         if(time!=null)
-            videoLength=DateUtils.getDate(time.toLong())
+            videoLength=DateUtils.getDateHHmmss(time.toLong())
 
         }
 

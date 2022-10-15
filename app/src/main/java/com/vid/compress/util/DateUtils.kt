@@ -1,10 +1,16 @@
 package com.vid.compress.util
+import android.annotation.SuppressLint
 import java.text.SimpleDateFormat
 import java.util.*
 
+
 class DateUtils {
     companion object{
-        fun getDate(time:Long):String{
+        fun getDate(ll: Long): String? {
+            @SuppressLint("SimpleDateFormat") val dateFormat = SimpleDateFormat("MM/dd/yyy")
+            return dateFormat.format(ll)
+        }
+        fun getDateHHmmss(time:Long):String{
             val str=StringBuffer()
             if((time/1000)<60*60){
                 val format=SimpleDateFormat("mm:ss", Locale.US)

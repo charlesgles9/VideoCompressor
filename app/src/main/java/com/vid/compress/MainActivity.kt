@@ -44,9 +44,7 @@ import com.vid.compress.permisions.PermissionHelper
 import com.vid.compress.ui.callbacks.LoadingCompleteListener
 import com.vid.compress.ui.models.FileObjectViewModel
 import com.vid.compress.ui.models.AlbumViewModel
-import com.vid.compress.ui.pages.DrawerView
-import com.vid.compress.ui.pages.ScrollInfo
-import com.vid.compress.ui.pages.albumList
+import com.vid.compress.ui.pages.*
 import com.vid.compress.ui.theme.*
 import kotlinx.coroutines.*
 
@@ -192,7 +190,9 @@ fun FileList(album:AlbumViewModel,state:LazyGridState,scrollInfo: ScrollInfo,con
                 .size(50.dp)
                 .align(Alignment.CenterHorizontally)
                 .padding(bottom = 10.dp)
-                .clickable { /*file info*/ }
+                .clickable { /*file info*/
+                  home.showProperties.value=true
+                }
                 .background(color = IconBackground, shape = CustomShape2) ) {
                 Icon(Icons.Outlined.Info, contentDescription = "Info",
                     modifier = Modifier
@@ -227,18 +227,23 @@ fun FileList(album:AlbumViewModel,state:LazyGridState,scrollInfo: ScrollInfo,con
             }
         }
 
-        if(home.isSelectActive())
-        Row(modifier= Modifier
-            .layoutId("fold")
-            .background(color = Color.DarkGray, shape = CustomShape1)
-            .clickable { slideOptions.value = !slideOptions.value }) {
-            Image(painter = painterResource(id =if(slideOptions.value) R.drawable.ic_fold else R.drawable.ic_unfold),
-                contentDescription ="fold", modifier = Modifier.size(40.dp))
-            Text(text = if(slideOptions.value)"CLOSE" else "OPEN", color = Color.White,
-                style = TextStyle(fontSize = 10.sp, fontWeight = FontWeight.Bold),
-                modifier = Modifier
-                    .padding(10.dp)
-                    .align(Alignment.CenterVertically))
+        if(home.isSelectActive()) {
+            Row(modifier = Modifier
+                .layoutId("fold")
+                .background(color = Color.DarkGray, shape = CustomShape1)
+                .clickable { slideOptions.value = !slideOptions.value }) {
+                Image(
+                    painter = painterResource(id = if (slideOptions.value) R.drawable.ic_fold else R.drawable.ic_unfold),
+                    contentDescription = "fold", modifier = Modifier.size(40.dp)
+                )
+                Text(
+                    text = if (slideOptions.value) "CLOSE" else "OPEN", color = Color.White,
+                    style = TextStyle(fontSize = 10.sp, fontWeight = FontWeight.Bold),
+                    modifier = Modifier
+                        .padding(10.dp)
+                        .align(Alignment.CenterVertically)
+                )
+            }
         }
     }
 
@@ -480,6 +485,9 @@ fun ToolBar(context: Activity){
 
 
       HorizontalPagerView(context)
+      PropertiesDialog(home){
+         album.showProperties.value=false
+      }
     }
 }
 
@@ -487,6 +495,7 @@ fun ToolBar(context: Activity){
 @Composable
 fun loadingView(modifier:Modifier){
     Card(elevation = 10.dp, modifier =modifier) {
+
         Column(modifier = Modifier
             .fillMaxWidth()
             .padding(top = 15.dp, bottom = 15.dp)) {
