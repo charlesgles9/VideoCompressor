@@ -1,31 +1,36 @@
 package com.vid.compress.ui.pages
 
-import android.content.Context
-import android.os.Bundle
-import androidx.activity.ComponentDialog
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.ComposeView
-import androidx.compose.ui.unit.dp
 import com.vid.compress.ui.models.AlbumViewModel
 import com.vid.compress.util.DateUtils
 import java.io.File
 
 
 @Composable
-fun PropertiesDialog(album: AlbumViewModel,onDismiss:()->Unit){
+fun PropertiesDialog(album1: AlbumViewModel,album2: AlbumViewModel,onDismiss:()->Unit){
 
-    if(album.showProperties.value){
+    if(album1.showProperties.value||album2.showProperties.value){
         AlertDialog(onDismissRequest = onDismiss,
             confirmButton = {
-                TextButton(onClick = { album.showProperties.value=false}) {
+                TextButton(onClick = {
+                    album1.showProperties.value=false
+                    album2.showProperties.value=false
+                }) {
                     Text(text = "Close")
                 }
-            }, title = { Text(text = "Properties")}, text = { FileProperties(album = album) })
+            }, title = { Text(text = "Properties")}, text = {
+                if( album1.showProperties.value) {
+                    FileProperties(album = album1)
+                }
+                if(album2.showProperties.value) {
+                    FileProperties(album = album2)
+                }
+            })
     }
 }
 

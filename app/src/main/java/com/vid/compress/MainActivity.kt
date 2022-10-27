@@ -374,7 +374,7 @@ fun ToolBar(context: Activity){
 
 
       HorizontalPagerView(context)
-      PropertiesDialog(home){
+      PropertiesDialog(home , album){
          album.showProperties.value=false
       }
     }

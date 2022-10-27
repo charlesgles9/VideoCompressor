@@ -60,9 +60,10 @@ fun albumList(context: Context,album:AlbumViewModel, state:LazyListState,scrollI
         FileOperationLayout(album,context,sliderWidth)
     LazyColumn(modifier = Modifier.fillMaxSize().layoutId("itemList"), state = state){
 
-        if(album.directory!="")
-        item {
-            moveBack(album = album)
+        if(album.directory!="") {
+            item {
+                moveBack(album = album)
+            }
         }
 
         itemsIndexed(album.files){ index, item ->

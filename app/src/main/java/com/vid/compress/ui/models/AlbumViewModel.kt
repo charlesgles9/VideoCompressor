@@ -72,8 +72,16 @@ class AlbumViewModel() :ViewModel(){
             var nBytes=0L
             withContext(Dispatchers.Default){
 
-                selected.forEach { file->
-                    nBytes+= File(file.filePath).length()
+                selected.forEach { path->
+                    val file=File(path.filePath)
+                    //size of file in bytes
+                    if(file.isFile)
+                    nBytes+= file.length()
+                    else
+                        // if it's a folder then get all files from that folder
+                        map[file.path]?.forEach { subFile->
+                            nBytes+= subFile.length()
+                        }
                 }
             }
             selectedSize.value=Disk.getSize(nBytes)
