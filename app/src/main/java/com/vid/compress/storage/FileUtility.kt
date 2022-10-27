@@ -9,6 +9,7 @@ import android.webkit.MimeTypeMap
 import androidx.documentfile.provider.DocumentFile
 import java.io.*
 import java.util.*
+import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
 
 class FileUtility {
@@ -53,6 +54,12 @@ class FileUtility {
          MediaScannerConnection.scanFile(context, arrayOf(file.path),null,scanListener)
      }
 
+    fun fileToUri(
+        context: Context, inFiles: ArrayList<File>,
+        scanListener: MediaScannerConnection.OnScanCompletedListener){
+        val outFiles=Array(inFiles.size, init ={index->inFiles[index].path})
+        MediaScannerConnection.scanFile(context, outFiles,null,scanListener)
+        }
 
      fun getFileName(path:String):String{
          return path.substring(

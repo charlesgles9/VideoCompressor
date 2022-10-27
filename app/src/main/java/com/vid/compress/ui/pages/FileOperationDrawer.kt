@@ -22,10 +22,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.vid.compress.storage.IntentChooserHelper
 import com.vid.compress.ui.models.AlbumViewModel
 
 import com.vid.compress.ui.theme.CustomShape2
 import com.vid.compress.ui.theme.IconBackground
+import java.io.File
 
 
 @Composable
@@ -88,7 +90,13 @@ fun FileOperationLayout(album:AlbumViewModel,context:Context,sliderWidth:State<D
             .size(50.dp)
             .align(Alignment.CenterHorizontally)
             .padding(bottom = 10.dp)
-            .clickable { /*send intent*/ }
+            .clickable { /*send intent*/
+                val files=ArrayList<File>()
+                album.selected.forEach { file->
+                    files.add(File(file.filePath))
+                }
+                IntentChooserHelper(context,files).sendMultiple()
+            }
             .background(color = IconBackground, shape = CustomShape2) ) {
             Icon(
                 Icons.Outlined.Send, contentDescription = "send",
@@ -103,7 +111,13 @@ fun FileOperationLayout(album:AlbumViewModel,context:Context,sliderWidth:State<D
             .size(50.dp)
             .align(Alignment.CenterHorizontally)
             .padding(bottom = 10.dp)
-            .clickable { /*share intent*/ }
+            .clickable { /*share intent*/
+              val files=ArrayList<File>()
+                album.selected.forEach { file->
+                    files.add(File(file.filePath))
+                }
+                IntentChooserHelper(context,files).shareMultiple()
+            }
             .background(color = IconBackground, shape = CustomShape2) ) {
             Icon(
                 Icons.Outlined.Share, contentDescription = "share",

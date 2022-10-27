@@ -68,9 +68,12 @@ fun albumList(context: Context,album:AlbumViewModel, state:LazyListState,scrollI
 
         itemsIndexed(album.files){ index, item ->
             albumItem(context,item, album)
-            if(index<album.files.lastIndex)
-            Divider(color = MaterialTheme.colors.onSecondary,
-                thickness = 0.5.dp)
+            if(index<album.files.lastIndex) {
+                Divider(
+                    color = MaterialTheme.colors.onSecondary,
+                    thickness = 0.5.dp
+                )
+            }
         }
         item {
             Spacer(modifier = Modifier.padding(50.dp))
