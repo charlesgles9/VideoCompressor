@@ -99,122 +99,8 @@ fun FileList(album:AlbumViewModel,state:LazyGridState,scrollInfo: ScrollInfo,con
 
     ConstraintLayout(modifier = Modifier.fillMaxSize(), constraintSet = constraints) {
         slideOptions.value=slideOptions.value&&album.isSelectActive()
-        Column(modifier = Modifier
-            .background(color = MaterialTheme.colors.primary)
-            .fillMaxHeight()
-            .width(sliderWidth.value)
-            .layoutId("options")) {
 
-
-            Text(text = "Items: " + home.selected.size + "/" + home.size(),
-                modifier = Modifier
-                    .padding(bottom = 50.dp, top = 10.dp)
-                    .align(Alignment.CenterHorizontally),
-                style= TextStyle(color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold))
-
-            Box(modifier= Modifier
-                .size(50.dp)
-                .align(Alignment.CenterHorizontally)
-                .padding(bottom = 10.dp)
-                .clickable {
-                    val intent = Intent(
-                        context.applicationContext,
-                        Class.forName("com.vid.compress.VideoPlayerActivity")
-                    )
-
-                    val list = ArrayList<String>()
-                    if (currentAlbumView == 0) {
-                        home.selected.forEach { file ->
-                            list.add(file.filePath)
-                        }
-                    } else if (currentAlbumView == 1) {
-                        album.selected.forEach { file ->
-                            list.add(file.filePath)
-                        }
-                    }
-                    intent.putStringArrayListExtra("uriList", list)
-                    context.startActivity(intent)
-
-                }
-                .background(color = IconBackground, shape = CustomShape2) ) {
-                Icon(Icons.Outlined.PlayArrow, contentDescription = "PlayAll",
-                    modifier = Modifier
-                        .align(Alignment.Center)
-                        .size(24.dp), tint = Color.White)
-            }
-
-            Box(modifier= Modifier
-                .size(50.dp)
-                .align(Alignment.CenterHorizontally)
-                .padding(bottom = 10.dp)
-                .clickable {
-                    if (currentAlbumView == 0)
-                        home.selectAll()
-                    else if (currentAlbumView == 1)
-                        album.selectAll()
-                }
-                .background(color = IconBackground, shape = CustomShape2) ) {
-                Icon(painter = painterResource(id = R.drawable.ic_select_all), contentDescription = "selectAll",
-                    modifier = Modifier
-                        .align(Alignment.Center)
-                        .size(24.dp), tint = Color.White)
-            }
-
-            Box(modifier= Modifier
-                .size(50.dp)
-                .align(Alignment.CenterHorizontally)
-                .padding(bottom = 10.dp)
-                .clickable { /*send intent*/ }
-                .background(color = IconBackground, shape = CustomShape2) ) {
-                Icon(Icons.Outlined.Send, contentDescription = "send",
-                    modifier = Modifier
-                        .align(Alignment.Center)
-                        .size(24.dp), tint = Color.White)
-            }
-
-
-
-            Box(modifier= Modifier
-                .size(50.dp)
-                .align(Alignment.CenterHorizontally)
-                .padding(bottom = 10.dp)
-                .clickable { /*share intent*/ }
-                .background(color = IconBackground, shape = CustomShape2) ) {
-                Icon(Icons.Outlined.Share, contentDescription = "share",
-                    modifier = Modifier
-                        .align(Alignment.Center)
-                        .size(24.dp),tint = Color.White)
-            }
-
-            Box(modifier= Modifier
-                .size(50.dp)
-                .align(Alignment.CenterHorizontally)
-                .padding(bottom = 10.dp)
-                .clickable { /*file info*/
-                  home.showProperties.value=true
-                }
-                .background(color = IconBackground, shape = CustomShape2) ) {
-                Icon(Icons.Outlined.Info, contentDescription = "Info",
-                    modifier = Modifier
-                        .align(Alignment.Center)
-                        .size(24.dp),tint = Color.White)
-            }
-
-            Box(modifier= Modifier
-                .size(50.dp)
-                .align(Alignment.CenterHorizontally)
-                .padding(bottom = 10.dp)
-                .clickable { /*delete file*/ }
-                .background(color = IconBackground, shape = CustomShape2) ) {
-                Icon(Icons.Outlined.Delete, contentDescription = "Delete",
-                    modifier = Modifier
-                        .align(Alignment.Center)
-                        .size(24.dp),tint = Color.White)
-            }
-
-
-        }
-
+        FileOperationLayout(home,context,sliderWidth)
         LazyVerticalGrid(columns = GridCells.Fixed(columnCount),
             state = state,
             contentPadding = PaddingValues(horizontal = 2.dp, vertical = 2.dp),
@@ -282,7 +168,7 @@ fun BottomNavigationOptions(context: Activity){
         .padding(top = 10.dp)
         .clickable { }, constraintSet = constraints) {
 
-        hideMenu.value= home.isSelectActive()
+        hideMenu.value= home.isSelectActive()||album.isSelectActive()
         Image(painterResource(id = R.drawable.ic_close),
             contentDescription = "close", modifier = Modifier
                 .size(50.dp)
@@ -291,8 +177,9 @@ fun BottomNavigationOptions(context: Activity){
                 .clickable {
                     hideMenu.value = false
                     home.clearSelected()
+                    album.clearSelected()
                 })
-        Text(text = "Selected Items("+ home.selected.size+")",
+        Text(text = "Selected Items("+ home.selected.size+album.selected.size+")",
             style = TextStyle(color =Color.White,
                 fontSize = 12.sp,fontWeight = FontWeight.Bold),
             modifier = Modifier
@@ -302,7 +189,7 @@ fun BottomNavigationOptions(context: Activity){
         Row(modifier= Modifier
             .layoutId("modify")
             .clickable {
-                if (!home.isSelectActive())
+                if (!home.isSelectActive()&&!album.isSelectActive())
                     return@clickable
                 val intent = Intent(
                     context.applicationContext,
@@ -311,6 +198,8 @@ fun BottomNavigationOptions(context: Activity){
                 val array = ArrayList<String>()
                 for (i in 0 until home.selected.size)
                     array.add(home.selected[i].filePath)
+                for (i in 0 until album.selected.size)
+                    array.add(album.selected[i].filePath)
                 intent.putStringArrayListExtra("selected", array)
                 context.startActivity(intent)
             }

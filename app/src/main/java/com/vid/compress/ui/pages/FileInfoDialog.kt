@@ -28,9 +28,9 @@ fun PropertiesDialog(album: AlbumViewModel,onDismiss:()->Unit){
             }, title = { Text(text = "Properties")}, text = { FileProperties(album = album) })
     }
 }
+
 @Composable
 fun FileProperties(album:AlbumViewModel){
-
     //calculate the number of bytes
     var size by remember { album.selectedSize }
         Column (modifier=Modifier.background(color = Color.White)){
