@@ -3,7 +3,10 @@ package com.vid.compress
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
+import android.net.Uri
 import android.os.Bundle
+import android.os.Environment
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.*
@@ -29,6 +32,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.ConstraintSet
+import androidx.core.net.toUri
+import com.abedelazizshe.lightcompressorlibrary.CompressionListener
+import com.abedelazizshe.lightcompressorlibrary.VideoCompressor
+import com.abedelazizshe.lightcompressorlibrary.VideoQuality
+import com.abedelazizshe.lightcompressorlibrary.config.Configuration
+import com.abedelazizshe.lightcompressorlibrary.config.StorageConfiguration
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.request.RequestOptions
 import com.google.accompanist.pager.ExperimentalPagerApi
@@ -315,16 +324,45 @@ fun PagerView(files:ArrayList<VideoCompressModel>, context: Context){
         }
         TextButton(onClick = {
             /*compress files on the background*/
+            val array=ArrayList<Uri>()
+                array.add(File(files[0].file.filePath).toUri())
 
+           VideoCompressor.start(context,array,isStreamable = false,StorageConfiguration(fileName = "test.mp4",
+               saveAt = context.cacheDir.path,isExternal = false),
+               Configuration(quality = VideoQuality.MEDIUM,isMinBitrateCheckEnabled = false,
+               videoBitrate = null,disableAudio = false,keepOriginalResolution = false, videoHeight = 360.0, videoWidth = 480.0),
+               listener = object :CompressionListener{
+
+                   override fun onProgress(index: Int, percent: Float) {
+
+                   }
+
+                   override fun onStart(index: Int) {
+                       Toast.makeText(context,"Started bro",Toast.LENGTH_SHORT).show()
+                   }
+
+                   override fun onSuccess(index: Int, size: Long, path: String?) {
+                      Toast.makeText(context,"Hello im done bro",Toast.LENGTH_SHORT).show()
+                   }
+
+                   override fun onFailure(index: Int, failureMessage: String) {
+                       Toast.makeText(context,failureMessage,Toast.LENGTH_SHORT).show()
+                       println(failureMessage)
+                   }
+
+                   override fun onCancelled(index: Int) {
+
+                   }
+           })
 
         },
             modifier = Modifier.padding(10.dp).fillMaxWidth()
                 .background(lightRed, shape = RoundedCornerShape(10.dp))
-                .border(5.dp,Color.Red)
+                .border(5.dp,Color.Red, shape = RoundedCornerShape(10.dp))
                 .layoutId("compressLayout")
         ) {
             Text(
-                text = "Compress", style = TextStyle(
+                text = "COMPRESS", style = TextStyle(
                     Color.White, fontSize = 20.sp,
                     fontWeight = FontWeight.ExtraBold
                 ), modifier = Modifier
