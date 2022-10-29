@@ -28,7 +28,7 @@ class FileObjectViewModel(private val file:File) :ViewModel(){
     var detailsLoaded=false
     var directoryCount by mutableStateOf("0")
     var videoLength by mutableStateOf("00:00:00")
-    var videoResolution by mutableStateOf(Pair<Any,Any>(0,0))
+    var originalResolution by mutableStateOf(Pair<Any,Any>(0,0))
     lateinit var thumbnail:ImageBitmap
     var thumbnailLoaded by mutableStateOf(false)
     constructor(path:String):this(File(path)){}
@@ -42,19 +42,20 @@ class FileObjectViewModel(private val file:File) :ViewModel(){
     }
 
     fun loadBitmap(context: Context){
-        if(!thumbnailLoaded)
-        viewModelScope.launch {
-            withContext(Dispatchers.Default){
-                try {
-                    val bmp = Glide.with(context).load(file).submit(100, 100).get().toBitmap()
+        if(!thumbnailLoaded) {
+            viewModelScope.launch {
+                withContext(Dispatchers.Default) {
+                    try {
+                        val bmp = Glide.with(context).load(file).submit(100, 100).get().toBitmap()
 
-                    val scaled = Bitmap.createScaledBitmap(bmp, 100, 100, false)
-                    thumbnail = scaled.asImageBitmap()
-                    thumbnailLoaded=true
-                }catch (e:Exception){
-                    thumbnailLoaded=false
+                        val scaled = Bitmap.createScaledBitmap(bmp, 100, 100, false)
+                        thumbnail = scaled.asImageBitmap()
+                        thumbnailLoaded = true
+                    } catch (e: Exception) {
+                        thumbnailLoaded = false
+                    }
+
                 }
-
             }
         }
     }
@@ -82,7 +83,7 @@ class FileObjectViewModel(private val file:File) :ViewModel(){
                 try {
                     media.setDataSource(file.path)
                     media.prepare()
-                    videoResolution = Pair(media.videoWidth, media.videoHeight)
+                    originalResolution = Pair(media.videoWidth, media.videoHeight)
                     media.release()
                 }catch (e:Exception){
                     e.printStackTrace()

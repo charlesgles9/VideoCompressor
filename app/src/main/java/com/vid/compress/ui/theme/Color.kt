@@ -7,6 +7,7 @@ val Purple500 = Color(0xFF6200EE)
 val Purple700 = Color(0xFF3700B3)
 val Teal200 = Color(0xFF03DAC5)
 val SelectColor=Color(0xFFF057E0)
+val lightRed=Color(0xFFF7365D)
 val LightBlue=Color(0xFF309BEC)
 val LighterBlue=Color(0xFF59B3F7)
 val textColorTitleLight=Color.Black

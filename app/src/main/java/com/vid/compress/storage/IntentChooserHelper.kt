@@ -8,14 +8,12 @@ import android.widget.Toast
 import java.io.File
 
 
-class IntentChooserHelper(val context:Context,val  array:ArrayList<File>) {
-
-
+class IntentChooserHelper(private val context:Context,private val files:ArrayList<File>) {
 
     //share to mimeType
     fun sendMultiple(){
         // make sure it's not a directory
-        if(array[0].isDirectory) {
+        if(files[0].isDirectory) {
             Toast.makeText(context,"cannot send Folders",Toast.LENGTH_SHORT).show()
             return
         }
@@ -23,12 +21,12 @@ class IntentChooserHelper(val context:Context,val  array:ArrayList<File>) {
         val intent = Intent(Intent.ACTION_SEND_MULTIPLE)
         intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         intent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris)
-        FileUtility.fileToUri(context,array){ path,uri->
+        FileUtility.fileToUri(context,files){ path,uri->
             uris.add(uri)
-            if(uris.size>=array.size){
+            if(uris.size>=files.size){
                 intent.type = getMimeType(File(path))
                 fetchDefaults(intent)
-                context.startActivity(Intent.createChooser(intent,"Open with"))
+                context.startActivity(Intent.createChooser(intent,"Send"))
             }
         }
     }
@@ -73,7 +71,7 @@ class IntentChooserHelper(val context:Context,val  array:ArrayList<File>) {
     // share to all
     fun shareMultiple(){
         // make sure it's not a directory
-        if(array[0].isDirectory) {
+        if(files[0].isDirectory) {
             Toast.makeText(context,"cannot send Folders",Toast.LENGTH_SHORT).show()
             return
         }
@@ -82,9 +80,9 @@ class IntentChooserHelper(val context:Context,val  array:ArrayList<File>) {
         intent.type = "*/*"
         intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         intent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris)
-        FileUtility.fileToUri(context,array){ path,uri->
+        FileUtility.fileToUri(context,files){ path,uri->
             uris.add(uri)
-            if(uris.size>=array.size){
+            if(uris.size>=files.size){
                 context.startActivity(Intent.createChooser(intent,"Share"))
             }
         }

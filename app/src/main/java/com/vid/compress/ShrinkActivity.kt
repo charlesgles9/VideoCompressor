@@ -39,7 +39,10 @@ import com.skydoves.landscapist.glide.GlideImage
 import com.vid.compress.storage.Disk
 import com.vid.compress.ui.models.FileObjectViewModel
 import com.vid.compress.storage.FileUtility
+import com.vid.compress.ui.models.VideoCompressModel
+import com.vid.compress.ui.theme.Shapes
 import com.vid.compress.ui.theme.VideoCompressorTheme
+import com.vid.compress.ui.theme.lightRed
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import java.io.File
@@ -50,9 +53,9 @@ class ShrinkActivity:ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val selected=intent.getStringArrayListExtra("selected")
-        val files=ArrayList<FileObjectViewModel>()
+        val files=ArrayList<VideoCompressModel>()
         if(selected!=null)
-        for(i in 0 until selected.size) files.add(FileObjectViewModel(selected[i]))
+        for(i in 0 until selected.size) files.add(VideoCompressModel(FileObjectViewModel(selected[i])))
         else
             finish()
         setContent {
@@ -68,7 +71,7 @@ class ShrinkActivity:ComponentActivity() {
 
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
-fun Toolbar(context:Activity,files:ArrayList<FileObjectViewModel>){
+fun Toolbar(context:Activity,files:ArrayList<VideoCompressModel>){
     val scope= rememberCoroutineScope()
     val scaffoldState= rememberScaffoldState()
 
@@ -84,7 +87,7 @@ fun Toolbar(context:Activity,files:ArrayList<FileObjectViewModel>){
 
 
 @Composable
-fun VideoDetails(file: FileObjectViewModel, context:Context){
+fun VideoDetails(videoModel: VideoCompressModel, context:Context){
     Column(modifier = Modifier.fillMaxWidth()) {
 
         Card(elevation = 10.dp, modifier = Modifier.padding(5.dp)) {
@@ -93,7 +96,7 @@ fun VideoDetails(file: FileObjectViewModel, context:Context){
             .padding(5.dp)) {
             Box(Modifier.fillMaxWidth()) {
                 GlideImage(
-                    imageModel = file.filePath, modifier = Modifier
+                    imageModel = videoModel.file.filePath, modifier = Modifier
                         .fillMaxWidth()
                         .height(180.dp)
                         .align(Alignment.Center)
@@ -111,20 +114,21 @@ fun VideoDetails(file: FileObjectViewModel, context:Context){
 
             Divider(color = MaterialTheme.colors.onSecondary, thickness = 0.5.dp)
             Text(
-                text = file.filePath,
+                text = videoModel.file.filePath,
                 style = TextStyle(
                     MaterialTheme.colors.onSecondary, fontSize = 12.sp,
                     fontWeight = FontWeight.Light), modifier = Modifier.padding(5.dp))
 
             Divider(color = MaterialTheme.colors.onSecondary, thickness = 0.5.dp)
             Text(
-                text = "Resolution: "+file.videoResolution.first+"*"+file.videoResolution.second+"|"+FileUtility.getExtension(file.fileName),
+                text = "Resolution: "+videoModel.file.originalResolution.first+"*"+videoModel.file.originalResolution.second+"|"+
+                        FileUtility.getExtension(videoModel.file.fileName),
                 style = TextStyle(
                     MaterialTheme.colors.onSecondary, fontSize = 12.sp,
                     fontWeight = FontWeight.Light), modifier = Modifier.padding(5.dp))
             Divider(color = MaterialTheme.colors.onSecondary, thickness = 0.5.dp)
             Text(
-                text ="Size: "+ Disk.getSize(File(file.filePath).length()),
+                text ="Size: "+ Disk.getSize(File(videoModel.file.filePath).length()),
                 style = TextStyle(
                     MaterialTheme.colors.onSecondary, fontSize = 12.sp,
                     fontWeight = FontWeight.Light), modifier = Modifier.padding(5.dp))
@@ -132,60 +136,44 @@ fun VideoDetails(file: FileObjectViewModel, context:Context){
         }
     }
 
-    file.fetchVideoResolution()
+    videoModel.file.fetchVideoResolution()
 
 }
 
 
 
 @Composable
-fun ResolutionPicker(){
-    val constants= listOf("Original","Medium Quality","Low Quality",
-          "240x180","360x270","480x360","640x480","800x600","1024x768","1280x960")
-    var expanded by remember{ mutableStateOf(false) }
-    var selected by remember { mutableStateOf("Original")}
+fun ResolutionPicker(videoModel: VideoCompressModel){
+    val constants= listOf("Original","Quality Very Low","Quality Low",
+           "Quality Medium","Quality High","Quality Very High",
+        "240x136","240x180","360x270","480x360","640x360","640x480","800x600","1024x576","1024x768","1280x960",
+        "1600x900","1920x1080","2048x1152","2560x1152","2560x1440","4096x2304")
+    var expanded by remember{mutableStateOf(false)}
     Card(modifier = Modifier
-        .fillMaxWidth()
+        .fillMaxSize()
         .padding(5.dp), elevation = 10.dp) {
 
-        val constraints= ConstraintSet{
-               val title=createRefFor("title")
-               val dropDownPlaceHolder=createRefFor("dropDownPlaceHolder")
-               val dropDownLayout=createRefFor("dropDownLayout")
-              constrain(title){
-                  start.linkTo(parent.start)
-                  top.linkTo(parent.top)
-              }
-            constrain(dropDownPlaceHolder){
-                top.linkTo(title.bottom)
-            }
-            constrain(dropDownLayout){
-                top.linkTo(dropDownPlaceHolder.bottom)
-                start.linkTo(dropDownPlaceHolder.end)
-            }
-        }
-    ConstraintLayout(modifier = Modifier
+
+    Column(modifier = Modifier
         .fillMaxWidth()
-        .padding(5.dp), constraintSet = constraints) {
+        .padding(5.dp)) {
         Text(
             text = "Select Resolution", style = TextStyle(
                 MaterialTheme.colors.onSecondary, fontSize = 12.sp,
                 fontWeight = FontWeight.Light), modifier = Modifier
-                .padding(5.dp)
-                .layoutId("title"))
+                .padding(5.dp))
           Row(modifier = Modifier
               .width(150.dp)
               .clickable { expanded = !expanded }
               .shadow(1.dp, shape = RoundedCornerShape(5.dp))
-              .padding(5.dp)
-              .layoutId("dropDownPlaceHolder")) {
+              .padding(5.dp)) {
 
               Icon(Icons.Filled.KeyboardArrowDown, contentDescription ="ArrowDown",
                   modifier = Modifier
                       .padding(end = 1.dp)
                       .align(Alignment.CenterVertically) )
               Text(
-                  text = selected,
+                  text = videoModel.selectedResolution,
                   style = TextStyle(
                       MaterialTheme.colors.onSecondary, fontSize = 13.sp,
                       fontWeight = FontWeight.Light), modifier = Modifier
@@ -197,12 +185,11 @@ fun ResolutionPicker(){
                 expanded = expanded, onDismissRequest = { expanded = false },
                 modifier = Modifier
                     .width(150.dp)
-                    .height(300.dp)
-                    .layoutId("dropDownLayout")) {
+                    .height(300.dp)) {
                 constants.forEach { label ->
                     DropdownMenuItem(onClick = {
                         expanded = false
-                        selected=label
+                        videoModel.selectedResolution=label
                     }) {
                         Text(
                             text = label, style = TextStyle(
@@ -211,19 +198,55 @@ fun ResolutionPicker(){
                             ), modifier = Modifier.padding(5.dp))
                     } }
             }
+        Row(modifier = Modifier.fillMaxWidth()){
+            Text(
+                text = "Disable Audio", style = TextStyle(
+                    MaterialTheme.colors.onSecondary, fontSize = 12.sp,
+                    fontWeight = FontWeight.Light), modifier = Modifier
+                    .padding(5.dp)
+                    .align(Alignment.CenterVertically)
+                    .width(100.dp))
+            Checkbox(checked =videoModel.disableAudio , onCheckedChange = {value->
+                videoModel.disableAudio=value
+            })
         }
-    }
+        Row(modifier = Modifier.fillMaxWidth()){
+            Text(
+                text = "min BitRate", style = TextStyle(
+                    MaterialTheme.colors.onSecondary, fontSize = 12.sp,
+                    fontWeight = FontWeight.Light), modifier = Modifier
+                    .padding(5.dp)
+                    .width(100.dp)
+                    .align(Alignment.CenterVertically))
+            Checkbox(checked =videoModel.minBitRateEnabled , onCheckedChange = {value->
+                videoModel.minBitRateEnabled =value
+            })
+            Text(
+                text = "/*caps the minimum bitrate to 2mbps*/", style = TextStyle(
+                    lightRed, fontSize = 10.sp,
+                    fontWeight = FontWeight.Light), modifier = Modifier
+                    .padding(5.dp)
+                    .align(Alignment.CenterVertically))
+        }
+        }
+
+
+     }
+
+
 
 }
 
 @OptIn(ExperimentalPagerApi::class)
 @Composable
-fun HorizontalTabs(files:ArrayList<FileObjectViewModel>, state:PagerState, scope:CoroutineScope){
+fun HorizontalTabs(files:ArrayList<VideoCompressModel>, state:PagerState, scope:CoroutineScope){
 
     ScrollableTabRow(selectedTabIndex = state.currentPage,
         indicator = { tabPositions ->
             TabRowDefaults.Indicator(modifier =
-            Modifier.tabIndicatorOffset(tabPositions[state.currentPage]).padding(5.dp)) }
+            Modifier
+                .tabIndicatorOffset(tabPositions[state.currentPage])
+                .padding(5.dp)) }
            , backgroundColor = Color.Transparent,
         contentColor = MaterialTheme.colors.primary, edgePadding = 5.dp) {
         files.forEachIndexed { index, file ->
@@ -232,7 +255,7 @@ fun HorizontalTabs(files:ArrayList<FileObjectViewModel>, state:PagerState, scope
                     state.animateScrollToPage(index)
                 }
             }) {
-                PagerTabs(file = file)
+                PagerTabs(videoModel = file)
             }
         }
 
@@ -242,11 +265,11 @@ fun HorizontalTabs(files:ArrayList<FileObjectViewModel>, state:PagerState, scope
 }
 
 @Composable
-fun PagerTabs(file: FileObjectViewModel){
+fun PagerTabs(videoModel: VideoCompressModel){
 
     Card(modifier = Modifier.padding(2.dp), elevation = 5.dp) {
         GlideImage(
-            imageModel = file.filePath, modifier = Modifier
+            imageModel = videoModel.file.filePath, modifier = Modifier
                 .size(80.dp)
                 .padding(5.dp), requestOptions = {
                 RequestOptions().override(90,90).diskCacheStrategy(
@@ -256,7 +279,7 @@ fun PagerTabs(file: FileObjectViewModel){
 }
 
 @Composable
-fun VideoLayout(file: FileObjectViewModel, context: Context){
+fun VideoLayout(file: VideoCompressModel, context: Context){
     val state=LazyListState()
    LazyColumn(state =state  ){
        item {
@@ -264,7 +287,7 @@ fun VideoLayout(file: FileObjectViewModel, context: Context){
        }
 
        item{
-           ResolutionPicker()
+           ResolutionPicker(file)
        }
 
    }
@@ -272,14 +295,43 @@ fun VideoLayout(file: FileObjectViewModel, context: Context){
 
 @OptIn(ExperimentalPagerApi::class)
 @Composable
-fun PagerView(files:ArrayList<FileObjectViewModel>, context: Context){
+fun PagerView(files:ArrayList<VideoCompressModel>, context: Context){
     val pageState= rememberPagerState()
     val scope= rememberCoroutineScope()
-    Column {
-        HorizontalPager(count = files.size, state = pageState) { currentPage ->
-            VideoLayout(file = files[currentPage], context)
+    val constraints=ConstraintSet{
+        val compressLayout=createRefFor("compressLayout")
+        constrain(compressLayout){
+            bottom.linkTo(parent.bottom)
+            centerHorizontallyTo(parent)
         }
-       HorizontalTabs(files = files, state =pageState , scope =scope )
+
+    }
+    ConstraintLayout(constraintSet = constraints, modifier = Modifier.fillMaxSize()) {
+        Column {
+            HorizontalPager(count = files.size, state = pageState) { currentPage ->
+                VideoLayout(file = files[currentPage], context)
+            }
+            HorizontalTabs(files = files, state = pageState, scope = scope)
+        }
+        TextButton(onClick = {
+            /*compress files on the background*/
+
+
+        },
+            modifier = Modifier.padding(10.dp).fillMaxWidth()
+                .background(lightRed, shape = RoundedCornerShape(10.dp))
+                .border(5.dp,Color.Red)
+                .layoutId("compressLayout")
+        ) {
+            Text(
+                text = "Compress", style = TextStyle(
+                    Color.White, fontSize = 20.sp,
+                    fontWeight = FontWeight.ExtraBold
+                ), modifier = Modifier
+                    .padding(5.dp)
+                    .align(Alignment.CenterVertically)
+            )
+        }
     }
 
 }
