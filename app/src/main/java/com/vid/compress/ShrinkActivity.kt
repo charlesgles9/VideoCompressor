@@ -3,6 +3,7 @@ package com.vid.compress
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
@@ -45,6 +46,8 @@ import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.PagerState
 import com.google.accompanist.pager.rememberPagerState
 import com.skydoves.landscapist.glide.GlideImage
+import com.vid.compress.services.DataBridge
+import com.vid.compress.services.ShrinkService
 import com.vid.compress.storage.Disk
 import com.vid.compress.ui.models.FileObjectViewModel
 import com.vid.compress.storage.FileUtility
@@ -53,6 +56,7 @@ import com.vid.compress.ui.theme.Shapes
 import com.vid.compress.ui.theme.VideoCompressorTheme
 import com.vid.compress.ui.theme.lightRed
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.io.File
 
@@ -302,6 +306,7 @@ fun VideoLayout(file: VideoCompressModel, context: Context){
    }
 }
 
+@SuppressLint("SuspiciousIndentation")
 @OptIn(ExperimentalPagerApi::class)
 @Composable
 fun PagerView(files:ArrayList<VideoCompressModel>, context: Context){
@@ -324,39 +329,15 @@ fun PagerView(files:ArrayList<VideoCompressModel>, context: Context){
         }
         TextButton(onClick = {
             /*compress files on the background*/
-            val array=ArrayList<Uri>()
-                array.add(File(files[0].file.filePath).toUri())
-
-           VideoCompressor.start(context,array,isStreamable = false,StorageConfiguration(fileName = "test.mp4",
-               saveAt = context.cacheDir.path,isExternal = false),
-               Configuration(quality = VideoQuality.MEDIUM,isMinBitrateCheckEnabled = false,
-               videoBitrate = null,disableAudio = false,keepOriginalResolution = false, videoHeight = 360.0, videoWidth = 480.0),
-               listener = object :CompressionListener{
-
-                   override fun onProgress(index: Int, percent: Float) {
-
-                   }
-
-                   override fun onStart(index: Int) {
-                       Toast.makeText(context,"Started bro",Toast.LENGTH_SHORT).show()
-                   }
-
-                   override fun onSuccess(index: Int, size: Long, path: String?) {
-                      Toast.makeText(context,"Hello im done bro",Toast.LENGTH_SHORT).show()
-                   }
-
-                   override fun onFailure(index: Int, failureMessage: String) {
-                       Toast.makeText(context,failureMessage,Toast.LENGTH_SHORT).show()
-                       println(failureMessage)
-                   }
-
-                   override fun onCancelled(index: Int) {
-
-                   }
-           })
-
+            val array: ArrayList<VideoCompressModel> =ArrayList()
+                array.addAll(files)
+            DataBridge.push(array)
+            //if the service has already been started don't launch it again
+            if(!DataBridge.active)
+               context.startService(Intent(context, ShrinkService::class.java))
         },
-            modifier = Modifier.padding(10.dp).fillMaxWidth()
+            modifier = Modifier.padding(10.dp)
+                .fillMaxWidth()
                 .background(lightRed, shape = RoundedCornerShape(10.dp))
                 .border(5.dp,Color.Red, shape = RoundedCornerShape(10.dp))
                 .layoutId("compressLayout")

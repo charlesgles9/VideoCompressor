@@ -71,7 +71,6 @@ class AlbumViewModel() :ViewModel(){
         viewModelScope.launch {
             var nBytes=0L
             withContext(Dispatchers.Default){
-
                 selected.forEach { path->
                     val file=File(path.filePath)
                     //size of file in bytes
@@ -128,7 +127,6 @@ class AlbumViewModel() :ViewModel(){
 
 
     fun fetchFiles(foldersOnly: Boolean =true,context: Context,listener:LoadingCompleteListener){
-
         viewModelScope.launch {
             isLoaded=true
             listener.started()
@@ -138,7 +136,6 @@ class AlbumViewModel() :ViewModel(){
                 if (foldersOnly) {
                     map.forEach {
                         data.add(FileObjectViewModel(it.key))
-
                     }
                 } else {
                     map.forEach { album ->
@@ -147,7 +144,7 @@ class AlbumViewModel() :ViewModel(){
                         }
                     }
                 }
-                data.sortBy {File(it.filePath).lastModified() }
+                data.sortByDescending {File(it.filePath).lastModified() }
             }
             files.addAll(data)
             listener.finished()

@@ -54,8 +54,6 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         PermissionHelper.grantStorageReadWrite(this)
 
-
-
         setContent {
             VideoCompressorTheme(darkTheme = false,this) {
                 Surface(modifier = Modifier.fillMaxSize(),
@@ -179,7 +177,7 @@ fun BottomNavigationOptions(context: Activity){
                     home.clearSelected()
                     album.clearSelected()
                 })
-        Text(text = "Selected Items("+ home.selected.size+album.selected.size+")",
+        Text(text = "Selected Items("+ (home.selected.size+album.selected.size)+")",
             style = TextStyle(color =Color.White,
                 fontSize = 12.sp,fontWeight = FontWeight.Bold),
             modifier = Modifier
