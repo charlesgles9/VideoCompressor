@@ -22,6 +22,19 @@ class FileUtility {
                      getExtension(name).lowercase(Locale.ROOT) == ".mkv"||
                      getExtension(name).lowercase(Locale.ROOT) == ".3gp"
       }
+
+
+
+      fun fetchVideos(folder:File):HashMap<String,MutableList<File>>{
+          val map=HashMap<String,MutableList<File>>()
+          val files=folder.list()
+          val list= mutableListOf<File>()
+          files?.forEach { file ->
+              list.add(File(folder,file))
+          }
+          map[folder.path] = list
+          return map
+      }
         // arranges all the files folder wise
       fun fetchVideos(context: Context):HashMap<String,MutableList<File>>{
           val map=HashMap<String,MutableList<File>>()

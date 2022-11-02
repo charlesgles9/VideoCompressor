@@ -5,6 +5,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.core.animateDpAsState
@@ -41,12 +42,14 @@ import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.rememberPagerState
 import com.vid.compress.permisions.PermissionHelper
+import com.vid.compress.storage.Disk
 import com.vid.compress.ui.callbacks.LoadingCompleteListener
 import com.vid.compress.ui.models.FileObjectViewModel
 import com.vid.compress.ui.models.AlbumViewModel
 import com.vid.compress.ui.pages.*
 import com.vid.compress.ui.theme.*
 import kotlinx.coroutines.*
+import java.io.File
 
 class MainActivity : ComponentActivity() {
 
@@ -54,16 +57,17 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         PermissionHelper.grantStorageReadWrite(this)
 
+
         setContent {
             VideoCompressorTheme(darkTheme = false,this) {
                 Surface(modifier = Modifier.fillMaxSize(),
                         shape = MaterialTheme.shapes.medium, elevation = 1.dp) {
                     ToolBar(this)
 
-
                 }
             }
         }
+
     }
 
 }
@@ -71,6 +75,7 @@ class MainActivity : ComponentActivity() {
 
 private val home=AlbumViewModel()
 private val album=AlbumViewModel()
+private val history=AlbumViewModel()
 private var currentAlbumView=0
 @SuppressLint("UnrememberedMutableState")
 @Composable
@@ -238,7 +243,7 @@ fun FileCard(file: FileObjectViewModel, context: Context, album: AlbumViewModel)
              })
              .border(width = 5.dp, color = if (file.selected) SelectColor else Color.Transparent)) {
 
-             if(file.thumbnailLoaded){
+             if(file.isBitmapReady){
                  Image(bitmap = file.thumbnail, contentDescription ="thumbnail",
                      modifier = Modifier
                          .align(Alignment.Center)
@@ -397,9 +402,11 @@ fun HorizontalPagerView(context: Context){
     val  coroutineScope= rememberCoroutineScope()
     val pageState= rememberPagerState()
     val albumState= rememberLazyListState()
+    val historyState= rememberLazyListState()
     val homeState= rememberLazyGridState()
     val homeLoadingVisible=remember{ mutableStateOf(false)}
     val albumLoadingVisible= remember { mutableStateOf(false) }
+    val historyLoadingVisible=remember{ mutableStateOf(false) }
     val constraints= ConstraintSet {
         val pagerLayout=createRefFor("pagerLayout")
         val pagerTabs=createRefFor("pagerTabs")
@@ -415,7 +422,7 @@ fun HorizontalPagerView(context: Context){
     ConstraintLayout(modifier = Modifier.fillMaxSize(), constraintSet = constraints) {
         
         //create pages
-        val size=2
+        val size=3
         val homeScrollInfo=ScrollInfo(-1)
         HorizontalPager(count =size,
                         state = pageState, modifier = Modifier.layoutId("pagerLayout")) { currentPage->
@@ -435,6 +442,8 @@ fun HorizontalPagerView(context: Context){
                     })
                     album.activateSearch=false
                     album.restoreFilter()
+                    history.activateSearch=false
+                    history.restoreFilter()
                     currentAlbumView=pageState.currentPage
                     Box(modifier = Modifier.fillMaxSize()){
 
@@ -464,9 +473,11 @@ fun HorizontalPagerView(context: Context){
                         })
                     home.activateSearch=false
                     home.restoreFilter()
+                    history.activateSearch=false
+                    history.restoreFilter()
                     currentAlbumView=pageState.currentPage
                     Box(modifier=Modifier.fillMaxSize()) {
-                        albumList(context,album,albumState,scrollInfo)
+                        albumList(context,album,albumState)
                         //loading indicator
                         if(albumLoadingVisible.value)
                             loadingView( modifier = Modifier
@@ -475,6 +486,37 @@ fun HorizontalPagerView(context: Context){
                                 .align(Alignment.Center))
                     }
 
+                }
+
+                2->{
+                    if(!history.isLoaded) {
+                        history.fetchFiles(Disk.getInternalCacheDir(context), context,
+                            listener = object : LoadingCompleteListener {
+                                override fun finished() {
+                                    historyLoadingVisible.value = false
+                                }
+
+                                override fun started() {
+                                    historyLoadingVisible.value = true
+
+                                }
+                            })
+                    }
+                    //in case the search was active for previous window
+                    album.activateSearch=false
+                    album.restoreFilter()
+                    home.activateSearch=false
+                    home.restoreFilter()
+                    currentAlbumView=pageState.currentPage
+                    Box(modifier=Modifier.fillMaxSize()) {
+                        HistoryList(context, history,historyState)
+                        //loading indicator
+                        if(historyLoadingVisible.value)
+                            loadingView( modifier = Modifier
+                                .width(250.dp)
+                                .padding(10.dp)
+                                .align(Alignment.Center))
+                    }
                 }
             }
         }
@@ -503,7 +545,7 @@ fun HorizontalPagerView(context: Context){
                 }
                 Tab(selected = pageState.currentPage==1,
                     onClick = {coroutineScope.launch {
-                        pageState.animateScrollToPage(1)
+                        pageState.animateScrollToPage(2)
                     }}){
                     Text(text = "History", modifier = Modifier.padding(top = 15.dp, bottom = 15.dp),color = Color.White)
                 }

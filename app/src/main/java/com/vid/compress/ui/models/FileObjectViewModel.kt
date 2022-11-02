@@ -31,6 +31,7 @@ class FileObjectViewModel(private val file:File) :ViewModel(){
     var originalResolution by mutableStateOf(Pair<Any,Any>(0,0))
     lateinit var thumbnail:ImageBitmap
     var thumbnailLoaded by mutableStateOf(false)
+    var isBitmapReady by mutableStateOf(false)
     constructor(path:String):this(File(path)){}
 
     fun toggleSelected(){
@@ -46,13 +47,15 @@ class FileObjectViewModel(private val file:File) :ViewModel(){
             viewModelScope.launch {
                 withContext(Dispatchers.Default) {
                     try {
-                        val bmp = Glide.with(context).load(file).submit(100, 100).get().toBitmap()
+                        thumbnailLoaded = true
+                        val bmp = Glide.with(context).load(file).timeout(3000)
+                            .submit(100, 100).get().toBitmap()
 
                         val scaled = Bitmap.createScaledBitmap(bmp, 100, 100, false)
                         thumbnail = scaled.asImageBitmap()
-                        thumbnailLoaded = true
+                        isBitmapReady=true
                     } catch (e: Exception) {
-                        thumbnailLoaded = false
+                        isBitmapReady=false
                     }
 
                 }

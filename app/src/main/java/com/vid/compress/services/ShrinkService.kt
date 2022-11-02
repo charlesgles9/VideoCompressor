@@ -11,6 +11,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.net.Uri
 import android.os.Build
+import android.os.Environment
 import android.os.Handler
 import android.os.IBinder
 import android.widget.RemoteViews
@@ -23,6 +24,7 @@ import com.abedelazizshe.lightcompressorlibrary.VideoQuality
 import com.abedelazizshe.lightcompressorlibrary.config.Configuration
 import com.abedelazizshe.lightcompressorlibrary.config.StorageConfiguration
 import com.vid.compress.R
+import com.vid.compress.storage.Disk
 import com.vid.compress.ui.models.VideoCompressModel
 import kotlinx.coroutines.isActive
 import java.io.File
@@ -78,7 +80,7 @@ class ShrinkService: Service() {
         timer.scheduleAtFixedRate(object :TimerTask() {
             override fun run() {
                 val completed=(DataBridge.originalSize()-DataBridge.currentSize())
-                val overall=(completed.toFloat()/DataBridge.percent.toFloat()*100f+DataBridge.percent).toInt()/2
+                val overall=(DataBridge.percent.toFloat()).toInt()
                 small.setTextViewText(R.id.title, "Compressing...("+completed+"/"+DataBridge.originalSize()+")")
                 big.setTextViewText(R.id.title, "Compressing...("+completed+"/"+DataBridge.originalSize()+")")
                 small.setProgressBar(R.id.progress, 100, overall, false)
@@ -99,15 +101,13 @@ class ShrinkService: Service() {
     private fun startVideoCompressionTask(video:VideoCompressModel,timer: Timer){
         val array=ArrayList<Uri>()
         array.add(Uri.fromFile(File(video.file.filePath)))
-        VideoCompressor.start(this,array,isStreamable = false, StorageConfiguration(fileName = video.file.fileName,
-            saveAt = this.cacheDir.path,isExternal = false),
+        VideoCompressor.start(this,array,isStreamable = true, StorageConfiguration(fileName = video.file.fileName,
+            saveAt = Disk.getDirs(this)[0].path,isExternal = true),
            video.getVideoConfiguration(),
             listener = object : CompressionListener {
 
                 override fun onProgress(index: Int, percent: Float) {
                     DataBridge.percent= min ((percent).toInt()+1,100)
-
-
                 }
 
                 override fun onStart(index: Int) {
@@ -121,6 +121,7 @@ class ShrinkService: Service() {
                     if(!DataBridge.isEmpty()) {
                         startVideoCompressionTask(DataBridge.peek(), timer)
                     }else{
+
                         //notify user task is complete
                         Toast.makeText(
                             this@ShrinkService,

@@ -1,6 +1,7 @@
 package com.vid.compress.ui.models
 
 import android.content.Context
+import android.widget.Toast
 import androidx.compose.runtime.*
 import androidx.lifecycle.ViewModel
 import com.vid.compress.ui.models.FileObjectViewModel
@@ -16,7 +17,7 @@ import java.io.File
 import java.util.*
 import kotlin.collections.HashMap
 
-class AlbumViewModel() :ViewModel(){
+class AlbumViewModel :ViewModel(){
    private lateinit var map:HashMap<String,MutableList<File>>
    private var filterBucket= mutableListOf<FileObjectViewModel>()
    var files =mutableStateListOf<FileObjectViewModel>()
@@ -56,6 +57,8 @@ class AlbumViewModel() :ViewModel(){
     }
 
     fun filter(phrase:String){
+        //in case the user searches more than once  clear previous
+        restoreFilter()
         val removeAll = files.removeAll { file ->
             val value =
                 !file.fileName.lowercase(Locale.ROOT).contains(phrase.lowercase(Locale.ROOT))
@@ -93,6 +96,7 @@ class AlbumViewModel() :ViewModel(){
         if(filterBucket.isNotEmpty()) {
             files.addAll(filterBucket)
             filterBucket.clear()
+            files.sortByDescending {File(it.filePath).lastModified() }
         }
     }
 
@@ -126,6 +130,25 @@ class AlbumViewModel() :ViewModel(){
     }
 
 
+    fun fetchFiles(folder:File,context: Context,listener:LoadingCompleteListener){
+        viewModelScope.launch {
+            isLoaded=true
+            files.clear()
+            listener.started()
+            withContext(Dispatchers.Default){
+                map=FileUtility.fetchVideos(folder)
+            }
+            val data=map[folder.path]
+            data?.forEach { file ->
+                  files.add(FileObjectViewModel(file))
+              }
+            Toast.makeText(context,"Test: "+folder.path, Toast.LENGTH_LONG).show()
+            if(folder.exists()){
+                Toast.makeText(context,"Test: Exists", Toast.LENGTH_LONG).show()
+            }
+            listener.finished()
+        }
+    }
     fun fetchFiles(foldersOnly: Boolean =true,context: Context,listener:LoadingCompleteListener){
         viewModelScope.launch {
             isLoaded=true
