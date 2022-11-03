@@ -27,6 +27,10 @@ class AlbumViewModel :ViewModel(){
    var isLoaded=false
    var showProperties= mutableStateOf(false)
    var selectedSize= mutableStateOf("calculating...")
+   var showSortOrderDialog= mutableStateOf(false)
+   var sortOder= listOf("Name ascending","Name descending",
+       "Size ascending","Size descending","Date ascending","Date descending")
+    var sortFlag=sortOder[5]
     fun isEmpty():Boolean{
         return files.isEmpty()
     }
@@ -168,13 +172,25 @@ class AlbumViewModel :ViewModel(){
                         }
                     }
                 }
-                data.sortByDescending {File(it.filePath).lastModified() }
+
             }
             files.addAll(data)
+            sort()
             listener.finished()
         }
     }
 
+
+    fun sort(){
+        when(sortFlag){
+            "Date descending"->files.sortByDescending {File(it.filePath).lastModified() }
+            "Date ascending"->files.sortBy {File(it.filePath).lastModified() }
+            "Name descending"->files.sortByDescending {File(it.filePath).name }
+            "Name ascending"->files.sortBy {File(it.filePath).name }
+            "Size descending"->files.sortByDescending {File(it.filePath).length() }
+            "Size ascending"->files.sortBy {File(it.filePath).length() }
+        }
+    }
     private var selectFlag=false
     fun selectAll() {
         selectFlag = !selectFlag

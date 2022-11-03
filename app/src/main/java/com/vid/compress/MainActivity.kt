@@ -378,9 +378,18 @@ fun ToolBar(context: Activity){
                                     }
                                 })
                         Icon(
-                            Icons.Filled.MoreVert,
-                            contentDescription = "More",
-                            modifier = Modifier.padding(start = 20.dp, end = 10.dp))
+                            painterResource(id = R.drawable.ic_sort),
+                            contentDescription = "Sort",
+                            modifier = Modifier
+                                .padding(start = 20.dp, end = 10.dp)
+                                .clickable {
+                                    //open sort file dialog
+                                    when(currentAlbumView){
+                                        0->home.showSortOrderDialog.value=true
+                                        1-> album.showSortOrderDialog.value=true
+                                        2-> history.showSortOrderDialog.value=true
+                                    }
+                                })
                     }})
 
         }){
@@ -392,6 +401,19 @@ fun ToolBar(context: Activity){
          home.showProperties.value=false
          history.showProperties.value=false
       }
+      SortByAlertDialog(home){
+          home.showSortOrderDialog.value=false
+          home.sort()
+      }
+      SortByAlertDialog(album){
+          album.showSortOrderDialog.value=false
+          album.sort()
+      }
+      SortByAlertDialog(history){
+          history.showSortOrderDialog.value=false
+          history.sort()
+      }
+
     }
 }
 
