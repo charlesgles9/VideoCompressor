@@ -25,18 +25,18 @@ fun SortByAlertDialog(album:AlbumViewModel,onDismiss:()->Unit){
                 //close the dialog
                 onDismiss()
             }) {
-                Text(text = "Close")
+                Text(text = "Confirm")
             }
         }, title = { Text(text = "Sort By") }, text = {
-            SortLayout(album, onDismiss)
+            SortLayout(album)
         })
     }
 }
 
 @Composable
-fun SortLayout(album: AlbumViewModel,onDismiss: () -> Unit){
+fun SortLayout(album: AlbumViewModel){
     val options= album.sortOder
-    val (selectedOption,onOptionSelected)= remember { mutableStateOf(options[2]) }
+    val (selectedOption,onOptionSelected)= remember { mutableStateOf(album.sortFlag) }
 
     Column (modifier = Modifier.fillMaxWidth()){
         options.forEach{
@@ -46,18 +46,16 @@ fun SortLayout(album: AlbumViewModel,onDismiss: () -> Unit){
                 .selectable(selected = (option == selectedOption),
                     onClick = {
                         onOptionSelected(option)
-                        onDismiss()
                         album.sortFlag=option
                     })
-                .padding(20.dp)) {
+                .padding(5.dp)) {
               RadioButton(selected = (option==selectedOption),
                   onClick = {
                       onOptionSelected(option)
-                      onDismiss()
                       album.sortFlag=option
                   })
                 Text(text = option,
-                   modifier = Modifier.padding(10.dp))
+                   modifier = Modifier.padding(5.dp))
             }
         }
     }

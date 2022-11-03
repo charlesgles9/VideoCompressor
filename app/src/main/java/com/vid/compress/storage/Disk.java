@@ -28,12 +28,6 @@ public class Disk {
         return new File(context.getExternalFilesDirs(null)[0],"Compressed");
     }
 
-    public static File getAppFolder(Context context){
-        File file=new File(getDirs(context)[0]+"/ShrinkCompressor");
-        //In case the file doesn't exist
-        file.mkdirs();
-        return file;
-    }
 
     public static long totalMemory(File file){
         StatFs statFs= new StatFs(file.getAbsolutePath());

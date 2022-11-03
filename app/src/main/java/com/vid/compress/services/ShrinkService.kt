@@ -87,6 +87,7 @@ class ShrinkService: Service() {
                 big.setProgressBar(R.id.progress, 100, overall, false)
                 small.setTextViewText(R.id.percent, "($overall%)")
                 big.setTextViewText(R.id.percent, "($overall%)")
+                small.setTextViewText(R.id.cancel,if(completed==DataBridge.originalSize())"CLOSE" else "CANCEL")
                 if(VideoCompressor.isActive)
                     notificationManager.notify(ID, notification)
 
@@ -102,7 +103,7 @@ class ShrinkService: Service() {
         val array=ArrayList<Uri>()
         array.add(Uri.fromFile(File(video.file.filePath)))
         VideoCompressor.start(this,array,isStreamable = true, StorageConfiguration(fileName = video.file.fileName,
-            saveAt = Disk.getDirs(this)[0].path,isExternal = true),
+            saveAt = "Compressed",isExternal = true),
            video.getVideoConfiguration(),
             listener = object : CompressionListener {
 

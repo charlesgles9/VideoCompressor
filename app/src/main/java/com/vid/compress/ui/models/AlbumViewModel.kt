@@ -146,10 +146,6 @@ class AlbumViewModel :ViewModel(){
             data?.forEach { file ->
                   files.add(FileObjectViewModel(file))
               }
-            Toast.makeText(context,"Test: "+folder.path, Toast.LENGTH_LONG).show()
-            if(folder.exists()){
-                Toast.makeText(context,"Test: Exists", Toast.LENGTH_LONG).show()
-            }
             listener.finished()
         }
     }
