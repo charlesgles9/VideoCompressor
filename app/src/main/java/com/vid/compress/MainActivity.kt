@@ -5,7 +5,6 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.core.animateDpAsState
@@ -20,7 +19,6 @@ import androidx.compose.material.*
 import androidx.compose.material.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.outlined.*
 
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -41,6 +39,8 @@ import androidx.constraintlayout.compose.ConstraintSet
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.rememberPagerState
+import com.google.accompanist.swiperefresh.SwipeRefresh
+import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.vid.compress.permisions.PermissionHelper
 import com.vid.compress.storage.Disk
 import com.vid.compress.ui.callbacks.LoadingCompleteListener
@@ -49,7 +49,6 @@ import com.vid.compress.ui.models.AlbumViewModel
 import com.vid.compress.ui.pages.*
 import com.vid.compress.ui.theme.*
 import kotlinx.coroutines.*
-import java.io.File
 
 class MainActivity : ComponentActivity() {
 
@@ -77,9 +76,10 @@ private val home=AlbumViewModel()
 private val album=AlbumViewModel()
 private val history=AlbumViewModel()
 private var currentAlbumView=0
+
 @SuppressLint("UnrememberedMutableState")
 @Composable
-fun FileList(album:AlbumViewModel,state:LazyGridState,scrollInfo: ScrollInfo,context: Context){
+fun FileList(album:AlbumViewModel,state:LazyGridState,context: Context){
     val columnCount=2
     val slideOptions= remember { mutableStateOf(false) }
     val sliderWidth= animateDpAsState(targetValue =if(slideOptions.value) 90.dp else 0.dp )
@@ -171,7 +171,7 @@ fun BottomNavigationOptions(context: Activity){
         .padding(top = 10.dp)
         .clickable { }, constraintSet = constraints) {
 
-        hideMenu.value= home.isSelectActive()||album.isSelectActive()
+        hideMenu.value= home.isSelectActive()||album.isSelectActive()|| history.isSelectActive()
         Image(painterResource(id = R.drawable.ic_close),
             contentDescription = "close", modifier = Modifier
                 .size(50.dp)
@@ -181,8 +181,9 @@ fun BottomNavigationOptions(context: Activity){
                     hideMenu.value = false
                     home.clearSelected()
                     album.clearSelected()
+                    history.clearSelected()
                 })
-        Text(text = "Selected Items("+ (home.selected.size+album.selected.size)+")",
+        Text(text = "Selected Items("+ (home.selected.size+album.selected.size+ history.selected.size)+")",
             style = TextStyle(color =Color.White,
                 fontSize = 12.sp,fontWeight = FontWeight.Bold),
             modifier = Modifier
@@ -192,7 +193,7 @@ fun BottomNavigationOptions(context: Activity){
         Row(modifier= Modifier
             .layoutId("modify")
             .clickable {
-                if (!home.isSelectActive()&&!album.isSelectActive())
+                if (!home.isSelectActive() && !album.isSelectActive() && !history.isSelectActive())
                     return@clickable
                 val intent = Intent(
                     context.applicationContext,
@@ -203,6 +204,8 @@ fun BottomNavigationOptions(context: Activity){
                     array.add(home.selected[i].filePath)
                 for (i in 0 until album.selected.size)
                     array.add(album.selected[i].filePath)
+                for (i in 0 until history.selected.size)
+                    array.add(history.selected[i].filePath)
                 intent.putStringArrayListExtra("selected", array)
                 context.startActivity(intent)
             }
@@ -215,11 +218,9 @@ fun BottomNavigationOptions(context: Activity){
                     .size(24.dp)
                     .align(Alignment.CenterVertically))
         }
-
-        }
-
-
+    }
 }
+
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun FileCard(file: FileObjectViewModel, context: Context, album: AlbumViewModel){
@@ -300,12 +301,20 @@ fun SearchView(){
         trailingIcon = {
             Icon(Icons.Filled.Close, contentDescription = "search",
                 modifier = Modifier.clickable {
-                    if(currentAlbumView==0) {
-                        home.activateSearch = !home.activateSearch
-                        home.restoreFilter()
-                    }else if(currentAlbumView==1){
-                        album.activateSearch = !album.activateSearch
-                        album.restoreFilter()
+
+                    when(currentAlbumView){
+                        0->{
+                            home.activateSearch = !home.activateSearch
+                            home.restoreFilter()
+                        }
+                        1->{
+                            album.activateSearch = !album.activateSearch
+                            album.restoreFilter()
+                        }
+                        2->{
+                            history.activateSearch = !history.activateSearch
+                            history.restoreFilter()
+                        }
                     }
                 })
         },
@@ -316,12 +325,13 @@ fun SearchView(){
          unfocusedLabelColor = Color.White, focusedLabelColor = Color.White, focusedIndicatorColor = Color.White,
             unfocusedIndicatorColor =Color.Transparent, leadingIconColor = Color.White, trailingIconColor = Color.White )
     , keyboardActions = KeyboardActions(onSearch = {
-            if(currentAlbumView==0)
-            home.filter(phrase = searchPhrase.value)
-             else
-                if(currentAlbumView==1)
-            album.filter(phrase = searchPhrase.value)
 
+            when(currentAlbumView){
+                0-> home.filter(phrase = searchPhrase.value)
+                1-> album.filter(phrase = searchPhrase.value)
+                2-> history.filter(phrase = searchPhrase.value)
+
+            }
     })
     )
 }
@@ -348,7 +358,7 @@ fun ToolBar(context: Activity){
 
                     },
                   elevation = 2.dp, actions = {
-                if(home.activateSearch|| album.activateSearch) {
+                if(home.activateSearch|| album.activateSearch|| history.activateSearch) {
                     SearchView()
                 }else{
                         Icon(
@@ -361,11 +371,11 @@ fun ToolBar(context: Activity){
                             modifier = Modifier
                                 .padding(start = 20.dp, end = 20.dp)
                                 .clickable {
-                                    if (currentAlbumView == 0)
-                                        home.activateSearch = !home.activateSearch
-                                    else
-                                        if (currentAlbumView == 1)
-                                            album.activateSearch = !album.activateSearch
+                                    when (currentAlbumView) {
+                                        0 -> home.activateSearch = !home.activateSearch
+                                        1 -> album.activateSearch = !album.activateSearch
+                                        2 -> history.activateSearch = !history.activateSearch
+                                    }
                                 })
                         Icon(
                             Icons.Filled.MoreVert,
@@ -377,15 +387,17 @@ fun ToolBar(context: Activity){
 
 
       HorizontalPagerView(context)
-      PropertiesDialog(home , album){
+      PropertiesDialog(home , album, history){
          album.showProperties.value=false
+         home.showProperties.value=false
+         history.showProperties.value=false
       }
     }
 }
 
 
 @Composable
-fun loadingView(modifier:Modifier){
+fun LoadingView(modifier:Modifier){
     Card(elevation = 10.dp, modifier =modifier) {
 
         Column(modifier = Modifier
@@ -423,44 +435,71 @@ fun HorizontalPagerView(context: Context){
         
         //create pages
         val size=3
-        val homeScrollInfo=ScrollInfo(-1)
         HorizontalPager(count =size,
                         state = pageState, modifier = Modifier.layoutId("pagerLayout")) { currentPage->
             when(currentPage){
                 
-                0->{
-                    if(!home.isLoaded)
-                    home.fetchFiles(context=context,foldersOnly = false, listener = object :LoadingCompleteListener{
-                        override fun finished() {
-                            homeLoadingVisible.value=false
-                        }
+                0-> {
+                    if (!home.isLoaded)
+                        home.fetchFiles(
+                            context = context,
+                            foldersOnly = false,
+                            listener = object : LoadingCompleteListener {
+                                override fun finished() {
+                                    homeLoadingVisible.value = false
+                                }
 
-                        override fun started() {
-                            homeLoadingVisible.value=true
-                        }
+                                override fun started() {
+                                    homeLoadingVisible.value = true
+                                }
 
-                    })
-                    album.activateSearch=false
+                            })
+                    album.activateSearch = false
                     album.restoreFilter()
-                    history.activateSearch=false
+                    history.activateSearch = false
                     history.restoreFilter()
-                    currentAlbumView=pageState.currentPage
-                    Box(modifier = Modifier.fillMaxSize()){
+                    currentAlbumView = pageState.currentPage
 
-                        FileList(home,homeState,homeScrollInfo,context)
-                        //loading indicator
-                        if(homeLoadingVisible.value)
-                           loadingView( modifier = Modifier
-                               .width(250.dp)
-                               .padding(10.dp)
-                               .align(Alignment.Center))
+                    SwipeRefresh(state = rememberSwipeRefreshState(isRefreshing = false),
+                        onRefresh = {
+
+                            // load only when no other thread is active to prevent memory leaks
+                           if(!homeLoadingVisible.value) {
+                               //in case the user refreshed the view while select is on clear select
+                               home.clearSelected()
+                               home.fetchFiles(
+                                   context = context,
+                                   foldersOnly = false,
+                                   listener = object : LoadingCompleteListener {
+                                       override fun finished() {
+                                           homeLoadingVisible.value = false
+                                       }
+
+                                       override fun started() {
+                                           homeLoadingVisible.value = true
+                                       }
+                                   })
+                                }
+                        }) {
+                        Box(modifier = Modifier.fillMaxSize()) {
+
+                            FileList(home, homeState, context)
+                            //loading indicator
+                            if (homeLoadingVisible.value)
+                                LoadingView(
+                                    modifier = Modifier
+                                        .width(250.dp)
+                                        .padding(10.dp)
+                                        .align(Alignment.Center)
+                                )
+
+                        }
 
                     }
-
                 }
                 
                 1->{
-                    val scrollInfo=ScrollInfo(-1)
+
                     if(!album.isLoaded)
                         album.fetchFiles(context=context,listener = object :LoadingCompleteListener{
                             override fun finished() {
@@ -476,14 +515,35 @@ fun HorizontalPagerView(context: Context){
                     history.activateSearch=false
                     history.restoreFilter()
                     currentAlbumView=pageState.currentPage
-                    Box(modifier=Modifier.fillMaxSize()) {
-                        albumList(context,album,albumState)
-                        //loading indicator
-                        if(albumLoadingVisible.value)
-                            loadingView( modifier = Modifier
-                                .width(250.dp)
-                                .padding(10.dp)
-                                .align(Alignment.Center))
+                    SwipeRefresh(state = rememberSwipeRefreshState(isRefreshing = false),
+                        onRefresh = {
+                            // load only when no other thread is active to prevent memory leaks
+                            if(!albumLoadingVisible.value) {
+                                //in case the user refreshed the view while select is on clear select
+                                album.clearSelected()
+                                album.fetchFiles(
+                                    context = context,
+                                    listener = object : LoadingCompleteListener {
+                                        override fun finished() {
+                                            albumLoadingVisible.value = false
+                                        }
+
+                                        override fun started() {
+                                            albumLoadingVisible.value = true
+                                        }
+                                    })
+                            } }) {
+                        Box(modifier = Modifier.fillMaxSize()) {
+                            albumList(context, album, albumState)
+                            //loading indicator
+                            if (albumLoadingVisible.value)
+                                LoadingView(
+                                    modifier = Modifier
+                                        .width(250.dp)
+                                        .padding(10.dp)
+                                        .align(Alignment.Center)
+                                )
+                        }
                     }
 
                 }
@@ -498,7 +558,6 @@ fun HorizontalPagerView(context: Context){
 
                                 override fun started() {
                                     historyLoadingVisible.value = true
-
                                 }
                             })
                     }
@@ -508,14 +567,37 @@ fun HorizontalPagerView(context: Context){
                     home.activateSearch=false
                     home.restoreFilter()
                     currentAlbumView=pageState.currentPage
-                    Box(modifier=Modifier.fillMaxSize()) {
-                        HistoryList(context, history,historyState)
-                        //loading indicator
-                        if(historyLoadingVisible.value)
-                            loadingView( modifier = Modifier
-                                .width(250.dp)
-                                .padding(10.dp)
-                                .align(Alignment.Center))
+                    SwipeRefresh(state = rememberSwipeRefreshState(isRefreshing = false),
+                        onRefresh = {
+                            // load only when no other thread is active to prevent memory leaks
+                            if(!historyLoadingVisible.value) {
+                                //in case the user refreshed the view while select is on clear select
+                                history.clearSelected()
+                                history.fetchFiles(Disk.getInternalCacheDir(context),
+                                    context,
+                                    listener = object : LoadingCompleteListener {
+                                        override fun finished() {
+                                            historyLoadingVisible.value = false
+                                        }
+                                        override fun started() {
+                                            historyLoadingVisible.value = true
+                                        }
+                                    })
+
+                            }
+
+                        }) {
+                        Box(modifier = Modifier.fillMaxSize()) {
+                            HistoryList(context, history, historyState)
+                            //loading indicator
+                            if (historyLoadingVisible.value)
+                                LoadingView(
+                                    modifier = Modifier
+                                        .width(250.dp)
+                                        .padding(10.dp)
+                                        .align(Alignment.Center)
+                                )
+                        }
                     }
                 }
             }
@@ -550,9 +632,6 @@ fun HorizontalPagerView(context: Context){
                     Text(text = "History", modifier = Modifier.padding(top = 15.dp, bottom = 15.dp),color = Color.White)
                 }
             }
-
-
-
     }
 }
 

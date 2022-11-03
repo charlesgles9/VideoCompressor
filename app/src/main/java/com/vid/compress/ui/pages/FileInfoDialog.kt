@@ -12,14 +12,15 @@ import java.io.File
 
 
 @Composable
-fun PropertiesDialog(album1: AlbumViewModel,album2: AlbumViewModel,onDismiss:()->Unit){
+fun PropertiesDialog(album1: AlbumViewModel,album2: AlbumViewModel,album3: AlbumViewModel,onDismiss:()->Unit){
 
-    if(album1.showProperties.value||album2.showProperties.value){
+    if(album1.showProperties.value||album2.showProperties.value||album3.showProperties.value){
         AlertDialog(onDismissRequest = onDismiss,
             confirmButton = {
                 TextButton(onClick = {
                     album1.showProperties.value=false
                     album2.showProperties.value=false
+                    album3.showProperties.value=false
                 }) {
                     Text(text = "Close")
                 }
@@ -29,6 +30,9 @@ fun PropertiesDialog(album1: AlbumViewModel,album2: AlbumViewModel,onDismiss:()-
                 }
                 if(album2.showProperties.value) {
                     FileProperties(album = album2)
+                }
+                if(album3.showProperties.value) {
+                    FileProperties(album = album3)
                 }
             })
     }

@@ -152,6 +152,7 @@ class AlbumViewModel :ViewModel(){
     fun fetchFiles(foldersOnly: Boolean =true,context: Context,listener:LoadingCompleteListener){
         viewModelScope.launch {
             isLoaded=true
+            files.clear()
             listener.started()
             val data= mutableListOf<FileObjectViewModel>()
             withContext(Dispatchers.Default) {
