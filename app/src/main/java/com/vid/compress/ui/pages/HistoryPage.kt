@@ -153,6 +153,7 @@ fun HistoryItem(context: Context, file: FileObjectViewModel, album: AlbumViewMod
                 centerVerticallyTo(directoryPath)
             }
         }
+
         ConstraintLayout(constraints, modifier = Modifier.fillMaxWidth()) {
 
                 if(file.isBitmapReady){

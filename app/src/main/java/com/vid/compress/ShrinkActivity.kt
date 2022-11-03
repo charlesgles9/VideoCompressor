@@ -335,6 +335,7 @@ fun PagerView(files:ArrayList<VideoCompressModel>, context: Context){
             //if the service has already been started don't launch it again
             if(!DataBridge.active)
                context.startService(Intent(context, ShrinkService::class.java))
+            (context as Activity).finish()
         },
             modifier = Modifier.padding(10.dp)
                 .fillMaxWidth()

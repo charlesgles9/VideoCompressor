@@ -88,6 +88,7 @@ class ShrinkService: Service() {
                 small.setTextViewText(R.id.percent, "($overall%)")
                 big.setTextViewText(R.id.percent, "($overall%)")
                 small.setTextViewText(R.id.cancel,if(completed==DataBridge.originalSize())"CLOSE" else "CANCEL")
+                big.setTextViewText(R.id.cancel,if(completed==DataBridge.originalSize())"CLOSE" else "CANCEL")
                 if(VideoCompressor.isActive)
                     notificationManager.notify(ID, notification)
 

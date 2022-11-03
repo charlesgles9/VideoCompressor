@@ -23,6 +23,8 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.layoutId
@@ -164,20 +166,20 @@ fun BottomNavigationOptions(context: Activity){
             centerVerticallyTo(parent)
         }
     }
+
     ConstraintLayout(modifier = Modifier
         .fillMaxWidth()
         .background(color = MaterialTheme.colors.primary)
         .height(slideUpDown.value)
-        .padding(top = 10.dp)
-        .clickable { }, constraintSet = constraints) {
-
+        .padding(top = 10.dp),constraintSet = constraints) {
         hideMenu.value= home.isSelectActive()||album.isSelectActive()|| history.isSelectActive()
         Image(painterResource(id = R.drawable.ic_close),
             contentDescription = "close", modifier = Modifier
                 .size(50.dp)
                 .layoutId("close")
                 .padding(start = 10.dp)
-                .clickable {
+                .clip(shape = CircleShape)
+                .clickable{
                     hideMenu.value = false
                     home.clearSelected()
                     album.clearSelected()
@@ -190,8 +192,10 @@ fun BottomNavigationOptions(context: Activity){
                 .layoutId("selectInfo")
                 .padding(start = 13.dp))
 
+
         Row(modifier= Modifier
             .layoutId("modify")
+            .clip(shape = CircleShape)
             .clickable {
                 if (!home.isSelectActive() && !album.isSelectActive() && !history.isSelectActive())
                     return@clickable
@@ -206,10 +210,14 @@ fun BottomNavigationOptions(context: Activity){
                     array.add(album.selected[i].filePath)
                 for (i in 0 until history.selected.size)
                     array.add(history.selected[i].filePath)
+                //sends data to the shrinkActivity class
                 intent.putStringArrayListExtra("selected", array)
                 context.startActivity(intent)
+                 home.clearSelected()
+                 album.clearSelected()
+                 history.clearSelected()
             }
-            .padding(end = 10.dp)) {
+            .padding(10.dp)) {
             Text( modifier = Modifier.align(Alignment.CenterVertically)
                 ,style = TextStyle(color =Color.White,
                 fontSize = 13.sp,fontWeight = FontWeight.Bold), text = "Modify")
