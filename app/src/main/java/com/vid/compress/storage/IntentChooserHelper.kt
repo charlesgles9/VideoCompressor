@@ -19,6 +19,7 @@ class IntentChooserHelper(private val context:Context,private val files:ArrayLis
         }
         val uris: ArrayList<Uri> = ArrayList()
         val intent = Intent(Intent.ACTION_SEND_MULTIPLE)
+        intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
         intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         intent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris)
         FileUtility.fileToUri(context,files){ path,uri->
@@ -78,7 +79,9 @@ class IntentChooserHelper(private val context:Context,private val files:ArrayLis
         val uris: ArrayList<Uri> = ArrayList()
         val intent = Intent(Intent.ACTION_SEND_MULTIPLE)
         intent.type = "*/*"
+        intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
         intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        intent.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
         intent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris)
         FileUtility.fileToUri(context,files){ path,uri->
             uris.add(uri)

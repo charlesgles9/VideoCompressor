@@ -5,6 +5,7 @@ import android.content.Intent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
@@ -14,6 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.res.painterResource
@@ -43,8 +45,7 @@ fun FileOperationLayout(album:AlbumViewModel,context:Context,sliderWidth:State<D
             modifier = Modifier
                 .padding(bottom = 50.dp, top = 10.dp)
                 .align(Alignment.CenterHorizontally),
-            style= TextStyle(color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-        )
+            style= TextStyle(color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold))
 
         Box(modifier= Modifier
             .size(50.dp)
@@ -53,8 +54,7 @@ fun FileOperationLayout(album:AlbumViewModel,context:Context,sliderWidth:State<D
             .clickable {
                 val intent = Intent(
                     context.applicationContext,
-                    Class.forName("com.vid.compress.VideoPlayerActivity")
-                )
+                    Class.forName("com.vid.compress.VideoPlayerActivity"))
 
                 val list = ArrayList<String>()
                 album.selected.forEach { file ->
@@ -69,6 +69,7 @@ fun FileOperationLayout(album:AlbumViewModel,context:Context,sliderWidth:State<D
                 Icons.Outlined.PlayArrow, contentDescription = "PlayAll",
                 modifier = Modifier
                     .align(Alignment.Center)
+                    .clip(shape = CircleShape)
                     .size(24.dp), tint = Color.White)
         }
 
@@ -83,6 +84,7 @@ fun FileOperationLayout(album:AlbumViewModel,context:Context,sliderWidth:State<D
             Icon(painter = painterResource(id = com.vid.compress.R.drawable.ic_select_all), contentDescription = "selectAll",
                 modifier = Modifier
                     .align(Alignment.Center)
+                    .clip(shape = CircleShape)
                     .size(24.dp), tint = Color.White)
         }
 
@@ -102,6 +104,7 @@ fun FileOperationLayout(album:AlbumViewModel,context:Context,sliderWidth:State<D
                 Icons.Outlined.Send, contentDescription = "send",
                 modifier = Modifier
                     .align(Alignment.Center)
+                    .clip(shape = CircleShape)
                     .size(24.dp), tint = Color.White)
         }
 
@@ -112,7 +115,7 @@ fun FileOperationLayout(album:AlbumViewModel,context:Context,sliderWidth:State<D
             .align(Alignment.CenterHorizontally)
             .padding(bottom = 10.dp)
             .clickable { /*share intent*/
-              val files=ArrayList<File>()
+              val files: ArrayList<File> =ArrayList()
                 album.selected.forEach { file->
                     files.add(File(file.filePath))
                 }
@@ -123,6 +126,7 @@ fun FileOperationLayout(album:AlbumViewModel,context:Context,sliderWidth:State<D
                 Icons.Outlined.Share, contentDescription = "share",
                 modifier = Modifier
                     .align(Alignment.Center)
+                    .clip(shape = CircleShape)
                     .size(24.dp),tint = Color.White)
         }
 
@@ -138,6 +142,7 @@ fun FileOperationLayout(album:AlbumViewModel,context:Context,sliderWidth:State<D
                 Icons.Outlined.Info, contentDescription = "Info",
                 modifier = Modifier
                     .align(Alignment.Center)
+                    .clip(shape = CircleShape)
                     .size(24.dp),tint = Color.White)
         }
 
@@ -151,6 +156,7 @@ fun FileOperationLayout(album:AlbumViewModel,context:Context,sliderWidth:State<D
                 Icons.Outlined.Delete, contentDescription = "Delete",
                 modifier = Modifier
                     .align(Alignment.Center)
+                    .clip(shape = CircleShape)
                     .size(24.dp),tint = Color.White)
         }
 

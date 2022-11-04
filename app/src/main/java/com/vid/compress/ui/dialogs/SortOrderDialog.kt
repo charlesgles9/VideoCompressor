@@ -1,4 +1,4 @@
-package com.vid.compress.ui.pages
+package com.vid.compress.ui.dialogs
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row

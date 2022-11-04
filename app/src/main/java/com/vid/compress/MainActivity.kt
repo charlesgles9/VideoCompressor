@@ -24,7 +24,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.layoutId
@@ -46,6 +45,8 @@ import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.vid.compress.permisions.PermissionHelper
 import com.vid.compress.storage.Disk
 import com.vid.compress.ui.callbacks.LoadingCompleteListener
+import com.vid.compress.ui.dialogs.PropertiesDialog
+import com.vid.compress.ui.dialogs.SortByAlertDialog
 import com.vid.compress.ui.models.FileObjectViewModel
 import com.vid.compress.ui.models.AlbumViewModel
 import com.vid.compress.ui.pages.*
