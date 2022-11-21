@@ -1,4 +1,5 @@
 package com.vid.compress
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
@@ -17,6 +18,7 @@ import com.vid.compress.ui.pages.StartView
 import com.vid.compress.ui.theme.VideoCompressorTheme
 
 class StartUpActivity : ComponentActivity() {
+    @SuppressLint("SuspiciousIndentation")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         // special storage access permission
