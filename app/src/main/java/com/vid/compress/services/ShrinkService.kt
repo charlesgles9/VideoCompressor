@@ -14,10 +14,13 @@ import android.os.Build
 import android.os.Environment
 import android.os.Handler
 import android.os.IBinder
+import android.provider.DocumentsContract
 import android.widget.RemoteViews
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.core.net.toFile
+import androidx.documentfile.provider.DocumentFile
+import androidx.lifecycle.viewmodel.viewModelFactory
 import com.abedelazizshe.lightcompressorlibrary.CompressionListener
 import com.abedelazizshe.lightcompressorlibrary.VideoCompressor
 import com.abedelazizshe.lightcompressorlibrary.VideoQuality
@@ -25,8 +28,11 @@ import com.abedelazizshe.lightcompressorlibrary.config.Configuration
 import com.abedelazizshe.lightcompressorlibrary.config.StorageConfiguration
 import com.vid.compress.R
 import com.vid.compress.storage.Disk
+import com.vid.compress.storage.FileUtility
 import com.vid.compress.ui.models.VideoCompressModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.util.Timer
 import java.util.TimerTask
@@ -111,32 +117,34 @@ class ShrinkService: Service() {
                 override fun onProgress(index: Int, percent: Float) {
                     DataBridge.percent= min ((percent).toInt()+1,100)
                 }
-
                 override fun onStart(index: Int) {
 
                 }
-
                 override fun onSuccess(index: Int, size: Long, path: String?) {
                     // remove compressed file
                     DataBridge.pop()
+                    val storage=Disk.getDirs(this@ShrinkService)[0]
+
+                    // move the file out of the cache dir to proper directory
+                    kotlin.run {
+                        FileUtility.moveFile(File(path),storage, this@ShrinkService)
+                    }
                     //compress next file
                     if(!DataBridge.isEmpty()) {
                         startVideoCompressionTask(DataBridge.peek(), timer)
                     }else{
-
                         //notify user task is complete
                         Toast.makeText(
                             this@ShrinkService,
                             "Compression Finished",
                             Toast.LENGTH_LONG
                         ).show()
-
                     }
                 }
 
                 override fun onFailure(index: Int, failureMessage: String) {
                     Toast.makeText(this@ShrinkService,failureMessage, Toast.LENGTH_SHORT).show()
-                    println(failureMessage)
+                   //@debug  println(failureMessage)
 
                 }
 

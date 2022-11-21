@@ -14,15 +14,16 @@ private val DarkColorPalette = darkColors(
         primary = Background3,
         primaryVariant = LightGray,
         secondary = Background2,
-        onSecondary = LightGray
+        onSecondary = textColorTitleDark,
+        secondaryVariant = LighterGray
 )
 
 private val LightColorPalette = lightColors(
         primary = LightBlue,
         primaryVariant = LighterBlue,
         secondary = Teal200,
-        onSecondary = textColorTitleLight
-
+        onSecondary = textColorTitleLight,
+        secondaryVariant = textColorTitleLight
 
         /* Other default colors to override
     background = Color.White,

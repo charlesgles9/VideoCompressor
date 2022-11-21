@@ -4,16 +4,14 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.AlertDialog
-import androidx.compose.material.RadioButton
-import androidx.compose.material.Text
-import androidx.compose.material.TextButton
+import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.vid.compress.ui.models.AlbumViewModel
+import com.vid.compress.ui.theme.LighterBlue
 import androidx.compose.foundation.selection.selectable as selectable
 
 
@@ -25,7 +23,7 @@ fun SortByAlertDialog(album:AlbumViewModel,onDismiss:()->Unit){
                 //close the dialog
                 onDismiss()
             }) {
-                Text(text = "Confirm")
+                Text(text = "Confirm",color = MaterialTheme.colors.onSecondary)
             }
         }, title = { Text(text = "Sort By") }, text = {
             SortLayout(album)
@@ -46,14 +44,14 @@ fun SortLayout(album: AlbumViewModel){
                 .selectable(selected = (option == selectedOption),
                     onClick = {
                         onOptionSelected(option)
-                        album.sortFlag=option
+                        album.sortFlag = option
                     })
                 .padding(5.dp)) {
               RadioButton(selected = (option==selectedOption),
                   onClick = {
                       onOptionSelected(option)
                       album.sortFlag=option
-                  })
+                  }, colors = RadioButtonDefaults.colors(selectedColor = LighterBlue))
                 Text(text = option,
                    modifier = Modifier.padding(5.dp))
             }

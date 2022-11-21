@@ -1,9 +1,14 @@
 package com.vid.compress.storage
 
+import android.annotation.SuppressLint
+import android.app.Activity
 import android.content.Context
+import android.content.Intent
 import android.database.MergeCursor
 import android.media.MediaScannerConnection
 import android.net.Uri
+import android.os.Build
+import android.provider.DocumentsContract
 import android.provider.MediaStore
 import android.webkit.MimeTypeMap
 import androidx.documentfile.provider.DocumentFile
@@ -61,6 +66,71 @@ class FileUtility {
           }
           return map
       }
+
+     fun getUriFromSharedPreference(file:File,context: Context):Uri?{
+         val permissions=context.contentResolver.persistedUriPermissions
+         permissions.forEach{
+              permission->
+             val document=DocumentFile.fromTreeUri(context,permission.uri)
+             if(document?.canWrite() == true&&document.name.equals(file.name)){
+                 return document.uri
+             }
+         }
+         return null
+     }
+
+  
+     fun getStoragePermission(file:File, context: Activity){
+         val uri= getUriFromSharedPreference(file,context)
+        if(uri==null){
+            with(context) { startActivityForResult(Intent(Intent.ACTION_OPEN_DOCUMENT_TREE),32) }
+        }
+     }
+
+    fun createDocumentFolder(document:DocumentFile?,name:String):Boolean{
+          return document?.createDirectory(name)?.exists()?:false
+      }
+
+     fun moveFile(source:File,storage:File,context: Context):Boolean{
+
+         var sourceDocument=
+             getUriFromSharedPreference(storage,context)?.let {
+                 DocumentFile.fromTreeUri(context,
+                     it
+                 )
+             }
+         var destinationDocument=
+             getUriFromSharedPreference(storage,context)?.let {
+                 DocumentFile.fromTreeUri(context,
+                     it
+                 )
+             }
+         val paths=source.path.substring(storage.path.length).split("/")
+         if(sourceDocument!=null) {
+             paths.forEach { path ->
+                 if (path.isNotEmpty()) {
+                     sourceDocument = sourceDocument?.findFile(path)
+                 }
+             }
+
+             //in case the folder doesn't exist
+             createDocumentFolder(destinationDocument,"ShrinkCompressor")
+             destinationDocument= destinationDocument?.findFile("ShrinkCompressor")
+
+             // move the file
+             sourceDocument?.parentFile?.uri?.let {
+                 destinationDocument?.uri?.let { it1 ->
+                     sourceDocument?.uri?.let { it2 ->
+                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                             DocumentsContract.moveDocument(context.contentResolver, it2,
+                                 it, it1)
+                         }
+                     }
+                 }
+             }
+         }
+         return destinationDocument?.findFile(source.name)?.exists()?:false
+     }
 
      fun fileToUri(context: Context,file: File,
          scanListener:MediaScannerConnection.OnScanCompletedListener){

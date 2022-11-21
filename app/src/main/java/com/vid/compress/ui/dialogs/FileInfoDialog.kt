@@ -1,11 +1,7 @@
 package com.vid.compress.ui.dialogs
-
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import com.vid.compress.ui.models.AlbumViewModel
 import com.vid.compress.util.DateUtils
 import java.io.File
@@ -22,7 +18,7 @@ fun PropertiesDialog(album1: AlbumViewModel,album2: AlbumViewModel,album3: Album
                     album2.showProperties.value=false
                     album3.showProperties.value=false
                 }) {
-                    Text(text = "Close")
+                    Text(text = "Close",color = MaterialTheme.colors.onSecondary)
                 }
             }, title = { Text(text = "Properties")}, text = {
                 if( album1.showProperties.value) {
@@ -42,7 +38,7 @@ fun PropertiesDialog(album1: AlbumViewModel,album2: AlbumViewModel,album3: Album
 fun FileProperties(album:AlbumViewModel){
     //calculate the number of bytes
     var size by remember { album.selectedSize }
-        Column (modifier=Modifier.background(color = Color.White)){
+        Column{
 
             if(album.selected.size>1) {
                 Text(text = "Size", color = MaterialTheme.colors.primary)

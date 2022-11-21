@@ -58,7 +58,9 @@ fun albumList(context: Context,album:AlbumViewModel, state:LazyListState){
     ConstraintLayout(modifier = Modifier.fillMaxSize(), constraintSet = constraints) {
         slideOptions.value=slideOptions.value&&album.isSelectActive()
         FileOperationLayout(album,context,sliderWidth)
-    LazyColumn(modifier = Modifier.fillMaxSize().layoutId("itemList"), state = state){
+    LazyColumn(modifier = Modifier
+        .fillMaxSize()
+        .layoutId("itemList"), state = state){
 
         if(album.directory!="") {
             item {
@@ -68,6 +70,12 @@ fun albumList(context: Context,album:AlbumViewModel, state:LazyListState){
 
         itemsIndexed(album.files){ index, item ->
             albumItem(context,item, album)
+            LaunchedEffect(key1 = {item.filePath}, block ={
+                item.loadVideoDetails()
+                if(!item.isFolder()) {
+                    item.loadBitmap(context)
+                }
+            } )
             if(index<album.files.lastIndex) {
                 Divider(
                     color = MaterialTheme.colors.onSecondary,
@@ -104,7 +112,9 @@ fun albumList(context: Context,album:AlbumViewModel, state:LazyListState){
 @Composable
 fun moveBack(album: AlbumViewModel){
 
-  Card(modifier = Modifier.fillMaxWidth().clickable { album.setFolder("") }, elevation = 1.dp) {
+  Card(modifier = Modifier
+      .fillMaxWidth()
+      .clickable { album.setFolder("") }, elevation = 1.dp) {
       Row(
           modifier = Modifier
               .fillMaxWidth()
@@ -138,10 +148,15 @@ fun albumItem(context:Context, file: FileObjectViewModel, album: AlbumViewModel)
 
     BoxWithConstraints (modifier =
     Modifier
-        .fillMaxWidth().border(width = 2.dp, color = if (file.selected) SelectColor else Color.Transparent,shape= Shapes.medium)
+        .fillMaxWidth()
+        .border(
+            width = 2.dp,
+            color = if (file.selected) SelectColor else Color.Transparent,
+            shape = Shapes.medium
+        )
         .combinedClickable(onClick = {
 
-            if(!file.isFolder()) {
+            if (!file.isFolder()) {
                 //select a file
                 if (album.isSelectActive()) {
                     file.selected = !file.selected
@@ -149,16 +164,17 @@ fun albumItem(context:Context, file: FileObjectViewModel, album: AlbumViewModel)
                         album.addSelectFile(file)
                     else
                         album.removeSelectFile(file)
-                }else{
+                } else {
                     //play the file
-                    val intent = Intent(context, Class.forName("com.vid.compress.VideoPlayerActivity"))
+                    val intent =
+                        Intent(context, Class.forName("com.vid.compress.VideoPlayerActivity"))
                     val list = ArrayList<String>()
                     list.add(file.filePath)
                     intent.putStringArrayListExtra("uriList", list)
                     context.startActivity(intent)
                 }
 
-            }else {
+            } else {
                 // open the folder
                 if (!album.isSelectActive()) {
                     album.setFolder(file.filePath)
@@ -223,12 +239,14 @@ fun albumItem(context:Context, file: FileObjectViewModel, album: AlbumViewModel)
                 if(file.isBitmapReady){
                     Image(bitmap = file.thumbnail, contentDescription ="thumbnail",
                         modifier = Modifier
-                            .layoutId("thumbnail").padding(5.dp)
+                            .layoutId("thumbnail")
+                            .padding(5.dp)
                             .size(50.dp), contentScale = ContentScale.Crop)
                 }else{
                     Image(painter = painterResource(id = R.drawable.ic_play_video_dark), contentDescription ="thumbnail",
                         modifier = Modifier
-                            .layoutId("thumbnail").padding(5.dp)
+                            .layoutId("thumbnail")
+                            .padding(5.dp)
                             .size(50.dp), contentScale = ContentScale.Crop)
                 }
             }
@@ -237,16 +255,18 @@ fun albumItem(context:Context, file: FileObjectViewModel, album: AlbumViewModel)
                 style = TextStyle(color = MaterialTheme.colors.onSecondary,
                 fontWeight = FontWeight.Bold, fontSize = 15.sp), maxLines = 1, overflow = TextOverflow.Ellipsis,
                 modifier = Modifier
-                    .fillMaxWidth(0.8f).padding(end = 5.dp)
+                    .fillMaxWidth(0.8f)
+                    .padding(end = 5.dp)
                     .layoutId("directoryName"))
             Text(text = file.filePath,
-                 style= TextStyle(color = MaterialTheme.colors.onSecondary,
+                 style= TextStyle(color = MaterialTheme.colors.secondaryVariant,
                  fontWeight = FontWeight.Normal, fontSize = 11.sp), maxLines = 1,overflow = TextOverflow.Ellipsis,
                  modifier = Modifier
-                     .fillMaxWidth(0.5f).padding(end = 5.dp)
+                     .fillMaxWidth(0.5f)
+                     .padding(end = 5.dp)
                      .layoutId("directoryPath"))
             Text(text = file.directoryCount,
-                style= TextStyle(color = MaterialTheme.colors.onSecondary,
+                style= TextStyle(color = MaterialTheme.colors.secondaryVariant,
                     fontWeight = FontWeight.Normal, fontSize = 10.sp), maxLines = 1,
                 modifier = Modifier
                     .layoutId("directoryCount")
@@ -255,9 +275,6 @@ fun albumItem(context:Context, file: FileObjectViewModel, album: AlbumViewModel)
 
         }
     }
-    file.loadVideoDetails()
-    if(!file.isFolder()) {
-        file.loadBitmap(context)
-    }
+
 
 }

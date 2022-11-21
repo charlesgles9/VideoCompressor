@@ -1,6 +1,10 @@
 package com.vid.compress.storage;
 import android.content.Context;
+import android.net.Uri;
 import android.os.StatFs;
+
+import androidx.documentfile.provider.DocumentFile;
+
 import java.io.File;
 import java.text.DecimalFormat;
 
@@ -22,12 +26,33 @@ public class Disk {
         return dirs;
     }
 
+    public static File getStorage(Context context,String name){
+        final File []files=getDirs(context);
+             for(File file:files){
+                 if(file.getName().equals(name)){
+                     return file;
+                 }
+             }
+             return null;
+    }
 
 
     public static File getInternalCacheDir(Context context){
         return new File(context.getExternalFilesDirs(null)[0],"Compressed");
     }
 
+    public static File getDefaultAppFolder(Context context){
+        File storage=getDirs(context)[0];
+        File file=new File(storage,"ShrinkCompressor");
+           if(!file.exists()) {
+               Uri uri = FileUtility.Companion.getUriFromSharedPreference(storage, context);
+               if (uri != null) {
+                   DocumentFile document = DocumentFile.fromTreeUri(context, uri);
+                   FileUtility.Companion.createDocumentFolder(document, "ShrinkCompressor");
+               }
+           }
+            return file;
+    }
 
     public static long totalMemory(File file){
         StatFs statFs= new StatFs(file.getAbsolutePath());

@@ -51,7 +51,9 @@ import com.vid.compress.services.ShrinkService
 import com.vid.compress.storage.Disk
 import com.vid.compress.ui.models.FileObjectViewModel
 import com.vid.compress.storage.FileUtility
+import com.vid.compress.ui.models.UserSettingsModel
 import com.vid.compress.ui.models.VideoCompressModel
+import com.vid.compress.ui.theme.LighterBlue
 import com.vid.compress.ui.theme.Shapes
 import com.vid.compress.ui.theme.VideoCompressorTheme
 import com.vid.compress.ui.theme.lightRed
@@ -72,7 +74,7 @@ class ShrinkActivity:ComponentActivity() {
         else
             finish()
         setContent {
-            VideoCompressorTheme(darkTheme = false,this) {
+            VideoCompressorTheme(darkTheme = UserSettingsModel.isDarkModeEnabled(this),this) {
                 Surface(modifier = Modifier.fillMaxSize(),
                         shape = MaterialTheme.shapes.medium) {
                     Toolbar(context = this,files)
@@ -221,7 +223,7 @@ fun ResolutionPicker(videoModel: VideoCompressModel){
                     .width(100.dp))
             Checkbox(checked =videoModel.disableAudio , onCheckedChange = {value->
                 videoModel.disableAudio=value
-            })
+            },colors=CheckboxDefaults.colors(checkedColor = LighterBlue))
         }
         Row(modifier = Modifier.fillMaxWidth()){
             Text(
@@ -233,7 +235,7 @@ fun ResolutionPicker(videoModel: VideoCompressModel){
                     .align(Alignment.CenterVertically))
             Checkbox(checked =videoModel.minBitRateEnabled , onCheckedChange = {value->
                 videoModel.minBitRateEnabled =value
-            })
+            },colors=CheckboxDefaults.colors(checkedColor = LighterBlue))
             Text(
                 text = "/*caps the minimum bitrate to 2mbps*/", style = TextStyle(
                     lightRed, fontSize = 10.sp,
@@ -337,10 +339,11 @@ fun PagerView(files:ArrayList<VideoCompressModel>, context: Context){
                context.startService(Intent(context, ShrinkService::class.java))
             (context as Activity).finish()
         },
-            modifier = Modifier.padding(10.dp)
+            modifier = Modifier
+                .padding(10.dp)
                 .fillMaxWidth()
                 .background(lightRed, shape = RoundedCornerShape(10.dp))
-                .border(5.dp,Color.Red, shape = RoundedCornerShape(10.dp))
+                .border(5.dp, Color.Red, shape = RoundedCornerShape(10.dp))
                 .layoutId("compressLayout")
         ) {
             Text(

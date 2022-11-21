@@ -5,6 +5,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.core.animateDpAsState
@@ -25,6 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.layoutId
 
@@ -37,41 +39,70 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.ConstraintSet
+import androidx.documentfile.provider.DocumentFile
+import coil.compose.rememberAsyncImagePainter
+import com.bumptech.glide.request.RequestOptions
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.rememberPagerState
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
+import com.skydoves.landscapist.ImageOptions
+import com.skydoves.landscapist.glide.GlideImage
 import com.vid.compress.permisions.PermissionHelper
 import com.vid.compress.storage.Disk
+import com.vid.compress.storage.FileUtility
 import com.vid.compress.ui.callbacks.LoadingCompleteListener
 import com.vid.compress.ui.dialogs.PropertiesDialog
 import com.vid.compress.ui.dialogs.SortByAlertDialog
 import com.vid.compress.ui.models.FileObjectViewModel
 import com.vid.compress.ui.models.AlbumViewModel
+import com.vid.compress.ui.models.UserSettingsModel
 import com.vid.compress.ui.pages.*
 import com.vid.compress.ui.theme.*
 import kotlinx.coroutines.*
+import java.io.File
 
 class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        PermissionHelper.grantStorageReadWrite(this)
-
 
         setContent {
-            VideoCompressorTheme(darkTheme = false,this) {
+            VideoCompressorTheme(darkTheme = UserSettingsModel.isDarkModeEnabled(this),this) {
                 Surface(modifier = Modifier.fillMaxSize(),
                         shape = MaterialTheme.shapes.medium, elevation = 1.dp) {
                     ToolBar(this)
-
                 }
             }
         }
-
     }
 
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if(data==null)
+            return
+
+        if(requestCode==32){
+            val uri=data.data
+            val document= uri?.let { DocumentFile.fromTreeUri(applicationContext, it) }
+            if(document==null||!document.canWrite()){
+                Toast.makeText(applicationContext,"Failed to Grant Permission!",Toast.LENGTH_LONG).show()
+                return
+            }
+
+           val storage=Disk.getStorage(applicationContext,document.name)
+
+            grantUriPermission(packageName,uri,Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+            contentResolver.takePersistableUriPermission(uri,Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+            val editor = getSharedPreferences("StorageUri", MODE_PRIVATE).edit().apply {
+                putString(storage.path,uri.path)
+                apply()
+            }
+            Toast.makeText(this,"Permission Granted!",Toast.LENGTH_SHORT).show()
+        }
+    }
 }
 
 
@@ -82,9 +113,10 @@ private var currentAlbumView=0
 
 @SuppressLint("UnrememberedMutableState")
 @Composable
-fun FileList(album:AlbumViewModel,state:LazyGridState,context: Context){
+fun FileList(album:AlbumViewModel,context: Context){
     val columnCount=2
     val slideOptions= remember { mutableStateOf(false) }
+    val state= rememberLazyGridState()
     val sliderWidth= animateDpAsState(targetValue =if(slideOptions.value) 90.dp else 0.dp )
     val constraints= ConstraintSet {
              val itemList=createRefFor("itemList")
@@ -107,11 +139,18 @@ fun FileList(album:AlbumViewModel,state:LazyGridState,context: Context){
         slideOptions.value=slideOptions.value&&album.isSelectActive()
 
         FileOperationLayout(home,context,sliderWidth)
-        LazyVerticalGrid(columns = GridCells.Fixed(columnCount),
+        LazyVerticalGrid(columns =
+        when(UserSettingsModel.columnCount(context)){
+                "1"-> GridCells.Fixed(1)
+                "2"-> GridCells.Fixed(2)
+                "3"-> GridCells.Fixed(3)
+                "4"-> GridCells.Fixed(4)
+            else -> GridCells.Adaptive(100.dp)
+        } ,
             state = state,
             contentPadding = PaddingValues(horizontal = 2.dp, vertical = 2.dp),
             horizontalArrangement = Arrangement.Center, modifier = Modifier.layoutId("itemList")){
-            items(items= album.files, key = {file -> file.filePath}) { file->
+            itemsIndexed(items = album.files){index,file->
                 FileCard(file,context,album)
             }
             item {
@@ -180,7 +219,7 @@ fun BottomNavigationOptions(context: Activity){
                 .layoutId("close")
                 .padding(start = 10.dp)
                 .clip(shape = CircleShape)
-                .clickable{
+                .clickable {
                     hideMenu.value = false
                     home.clearSelected()
                     album.clearSelected()
@@ -207,16 +246,23 @@ fun BottomNavigationOptions(context: Activity){
                 val array = ArrayList<String>()
                 for (i in 0 until home.selected.size)
                     array.add(home.selected[i].filePath)
-                for (i in 0 until album.selected.size)
-                    array.add(album.selected[i].filePath)
+                // album may contain folders so ignore folders
+                for (i in 0 until album.selected.size) {
+                    val file=File(album.selected[i].filePath)
+                    if (!file.isFile) continue
+                    array.add(file.path)
+                }
+
                 for (i in 0 until history.selected.size)
                     array.add(history.selected[i].filePath)
                 //sends data to the shrinkActivity class
-                intent.putStringArrayListExtra("selected", array)
-                context.startActivity(intent)
-                 home.clearSelected()
-                 album.clearSelected()
-                 history.clearSelected()
+                if(array.isNotEmpty()) {
+                    intent.putStringArrayListExtra("selected", array)
+                    context.startActivity(intent)
+                }
+                home.clearSelected()
+                album.clearSelected()
+                history.clearSelected()
             }
             .padding(10.dp)) {
             Text( modifier = Modifier.align(Alignment.CenterVertically)
@@ -230,11 +276,24 @@ fun BottomNavigationOptions(context: Activity){
     }
 }
 
+
+@Composable
+fun AlbumImageView(file:FileObjectViewModel,modifier: Modifier){
+    if(file.isBitmapReady){
+        Image(bitmap= file.thumbnail, contentDescription ="thumbnail",
+            modifier = modifier, filterQuality = FilterQuality.Medium, contentScale = ContentScale.Crop)
+    }else{
+        Image(painter = painterResource(id = R.drawable.ic_play_video_dark), contentDescription ="thumbnail",
+            modifier = modifier,contentScale = ContentScale.Crop)
+    }
+}
+
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun FileCard(file: FileObjectViewModel, context: Context, album: AlbumViewModel){
+
          Box(modifier = Modifier
-             .padding(1.dp)
+             .padding(2.dp)
              .combinedClickable(onClick = {
                  file.selected = !file.selected
                  if (file.selected) {
@@ -253,17 +312,9 @@ fun FileCard(file: FileObjectViewModel, context: Context, album: AlbumViewModel)
              })
              .border(width = 5.dp, color = if (file.selected) SelectColor else Color.Transparent)) {
 
-             if(file.isBitmapReady){
-                 Image(bitmap = file.thumbnail, contentDescription ="thumbnail",
-                     modifier = Modifier
-                         .align(Alignment.Center)
-                         .fillMaxWidth(), contentScale = ContentScale.Crop)
-             }else{
-                 Image(painter = painterResource(id = R.drawable.ic_play_video_dark), contentDescription ="thumbnail",
-                     modifier = Modifier
-                         .align(Alignment.Center)
-                         .fillMaxWidth(), contentScale = ContentScale.Crop)
-             }
+            AlbumImageView(file, modifier = Modifier
+                .align(Alignment.Center)
+                .fillMaxWidth())
              Column(
                  modifier = Modifier
                      .align(Alignment.BottomStart)
@@ -292,9 +343,9 @@ fun FileCard(file: FileObjectViewModel, context: Context, album: AlbumViewModel)
              }
          }
 
-      file.loadVideoDetails()
-      file.loadBitmap(context)
 
+    file.loadVideoDetails()
+    file.loadBitmap(context)
 }
 
 @Composable
@@ -341,8 +392,7 @@ fun SearchView(){
                 2-> history.filter(phrase = searchPhrase.value)
 
             }
-    })
-    )
+    }))
 }
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
@@ -351,7 +401,7 @@ fun ToolBar(context: Activity){
     val scaffoldState= rememberScaffoldState()
     Scaffold (
         scaffoldState=scaffoldState,
-        drawerContent = {DrawerView()},
+        drawerContent = {DrawerView(context)},
         bottomBar = { BottomNavigationOptions(context)},
         topBar = {
         TopAppBar(title = { Text(text = "Compress", fontSize = 15.sp)},
@@ -393,10 +443,10 @@ fun ToolBar(context: Activity){
                                 .padding(start = 20.dp, end = 10.dp)
                                 .clickable {
                                     //open sort file dialog
-                                    when(currentAlbumView){
-                                        0->home.showSortOrderDialog.value=true
-                                        1-> album.showSortOrderDialog.value=true
-                                        2-> history.showSortOrderDialog.value=true
+                                    when (currentAlbumView) {
+                                        0 -> home.showSortOrderDialog.value = true
+                                        1 -> album.showSortOrderDialog.value = true
+                                        2 -> history.showSortOrderDialog.value = true
                                     }
                                 })
                     }})
@@ -434,7 +484,7 @@ fun LoadingView(modifier:Modifier){
         Column(modifier = Modifier
             .fillMaxWidth()
             .padding(top = 15.dp, bottom = 15.dp)) {
-            CircularProgressIndicator( color = LighterBlue,
+            CircularProgressIndicator( color = ColorTheme1,
                 modifier = Modifier.align(Alignment.CenterHorizontally))
         }
     }
@@ -446,10 +496,11 @@ fun HorizontalPagerView(context: Context){
     val pageState= rememberPagerState()
     val albumState= rememberLazyListState()
     val historyState= rememberLazyListState()
-    val homeState= rememberLazyGridState()
+
     val homeLoadingVisible=remember{ mutableStateOf(false)}
     val albumLoadingVisible= remember { mutableStateOf(false) }
     val historyLoadingVisible=remember{ mutableStateOf(false) }
+
     val constraints= ConstraintSet {
         val pagerLayout=createRefFor("pagerLayout")
         val pagerTabs=createRefFor("pagerTabs")
@@ -514,7 +565,8 @@ fun HorizontalPagerView(context: Context){
                         }) {
                         Box(modifier = Modifier.fillMaxSize()) {
 
-                            FileList(home, homeState, context)
+
+                            FileList(home, context)
                             //loading indicator
                             if (homeLoadingVisible.value)
                                 LoadingView(
@@ -581,7 +633,7 @@ fun HorizontalPagerView(context: Context){
 
                 2->{
                     if(!history.isLoaded) {
-                        history.fetchFiles(Disk.getInternalCacheDir(context), context,
+                        history.fetchFiles(Disk.getDefaultAppFolder(context), context,
                             listener = object : LoadingCompleteListener {
                                 override fun finished() {
                                     historyLoadingVisible.value = false
@@ -604,7 +656,7 @@ fun HorizontalPagerView(context: Context){
                             if(!historyLoadingVisible.value) {
                                 //in case the user refreshed the view while select is on clear select
                                 history.clearSelected()
-                                history.fetchFiles(Disk.getInternalCacheDir(context),
+                                history.fetchFiles(Disk.getDefaultAppFolder(context),
                                     context,
                                     listener = object : LoadingCompleteListener {
                                         override fun finished() {

@@ -48,16 +48,16 @@ class FileObjectViewModel(private val file:File) :ViewModel(){
                 withContext(Dispatchers.Default) {
                     try {
                         thumbnailLoaded = true
+                        val size=UserSettingsModel.thumbnailSize(context)
                         val bmp = Glide.with(context).load(file).timeout(3000)
-                            .submit(100, 100).get().toBitmap()
-
-                        val scaled = Bitmap.createScaledBitmap(bmp, 100, 100, false)
+                            .submit(size, size).get().toBitmap()
+                        val scaled = Bitmap.createScaledBitmap(bmp, size, size, false)
                         thumbnail = scaled.asImageBitmap()
+                        thumbnail.prepareToDraw()
                         isBitmapReady=true
                     } catch (e: Exception) {
                         isBitmapReady=false
                     }
-
                 }
             }
         }
@@ -68,14 +68,15 @@ class FileObjectViewModel(private val file:File) :ViewModel(){
             return
         viewModelScope.launch {
             withContext(Dispatchers.Default) {
-                if (file.isDirectory) {
-                    directoryCount =
-                        ("items " + (file.list(FileUtility.videoFilter)?.size.toString() ?: "0"))
-                } else {
-                    directoryCount = Disk.getSize(file.length())
-                    setVideoLength()
-                }
                 detailsLoaded = true
+                if (file.isDirectory) {
+                    directoryCount = ("items " + (file.list(FileUtility.videoFilter)?.size.toString() ?: "0"))
+                } else {
+                    setVideoLength()
+                    directoryCount = Disk.getSize(file.length())
+
+                }
+
             }}
     }
 

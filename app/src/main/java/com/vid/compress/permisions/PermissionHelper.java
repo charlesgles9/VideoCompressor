@@ -17,7 +17,7 @@ public class PermissionHelper {
         }
     }
 
-    private  static boolean checkStoragePermissionDenied(Activity context){
+    public  static boolean checkStoragePermissionDenied(Activity context){
         // check for storage permission
         return ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE)== PackageManager.PERMISSION_DENIED;
     }
