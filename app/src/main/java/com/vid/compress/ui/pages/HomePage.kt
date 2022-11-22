@@ -30,6 +30,7 @@ import com.vid.compress.ui.theme.LighterBlue
 
 @Composable
 fun DrawerView(context:Context){
+
     LazyColumn{
 
         item {
@@ -37,18 +38,32 @@ fun DrawerView(context:Context){
         }
 
         item {
-            drawerHeader(title = "Rate Us",Icons.Default.Favorite)
+            drawerHeader(title = "Rate Us",Icons.Default.Favorite){
+
+            }
+            Divider(
+                color = MaterialTheme.colors.onSecondary,
+                thickness = 0.5.dp
+            )
         }
         item {
-           drawerHeader(title = "Give FeedBack",Icons.Default.Email)
+           drawerHeader(title = "Give FeedBack",Icons.Default.Email){
+
+           }
+            Divider(
+                color = MaterialTheme.colors.onSecondary,
+                thickness = 0.5.dp
+            )
         }
         item {
-            drawerHeader(title = "User Preference",Icons.Default.Settings)
+            drawerHeader(title = "User Preference",Icons.Default.Settings){
+
+            }
+
         }
         item {
             drawerItemToggle(UserSettingsModel.isDarkModeEnabled(context),title = "DarkModeEnabled"){
-                 value->
-                UserSettingsModel.setDarkModeEnabled(context, value)
+                 value-> UserSettingsModel.setDarkModeEnabled(context, value)
           }
         }
         item {
@@ -61,14 +76,23 @@ fun DrawerView(context:Context){
                 value-> UserSettingsModel.setThumbnailSize(context,value.toInt())
             }
         }
+        item{
+            Divider(
+                color = MaterialTheme.colors.onSecondary,
+                thickness = 0.5.dp
+            )
+        }
 
     }
 }
 
 @Composable
-fun drawerHeader(title:String,icon:ImageVector){
+fun drawerHeader(title:String,icon:ImageVector,callback: () -> Unit){
     Column( modifier = Modifier
-        .fillMaxWidth()) {
+        .fillMaxWidth()
+        .clickable {
+            callback()
+        }) {
         Row {
             Icon(icon, contentDescription ="Icon" , modifier = Modifier.padding(15.dp))
             Text(text = title,
@@ -76,10 +100,7 @@ fun drawerHeader(title:String,icon:ImageVector){
                     fontSize = 15.sp, color = MaterialTheme.colors.onSecondary),
              modifier = Modifier.align(Alignment.CenterVertically))
         }
-        Divider(
-            color = MaterialTheme.colors.onSecondary,
-            thickness = 0.5.dp
-        )
+
     }
 }
 
@@ -102,10 +123,10 @@ fun drawerItemToggle(value:Boolean,title: String,callback:(Boolean)->Unit){
         mutableStateOf(value)
     }
     Row(modifier= Modifier
-        .padding(start = 15.dp, end = 15.dp)
+        .padding(start = 10.dp, end = 15.dp)
         .fillMaxWidth()
         .height(50.dp)
-        .shadow(1.dp, ambientColor = Color.LightGray, shape = Shapes().medium)){
+        .shadow(0.5.dp, ambientColor = Color.LightGray, shape = Shapes().medium)){
         Text(
             text = title,
             style = TextStyle(fontSize = 12.sp,
@@ -129,10 +150,10 @@ fun drawerItemDropDown(value:String,title: String,items:Array<Any>,callback:(Str
     var current by remember { mutableStateOf(value) }
 
     Row(modifier = Modifier
-        .padding(start = 15.dp, end = 15.dp)
+        .padding(start = 10.dp, end = 15.dp)
         .fillMaxWidth()
         .height(50.dp)
-        .shadow(1.dp, ambientColor = Color.LightGray, shape = Shapes().medium)
+        .shadow(0.5.dp, ambientColor = Color.LightGray, shape = Shapes().medium)
         .clickable {
             expanded = !expanded
         }) {

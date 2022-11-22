@@ -1,5 +1,6 @@
 package com.vid.compress.services
 
+import android.annotation.SuppressLint
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -26,6 +27,8 @@ import com.abedelazizshe.lightcompressorlibrary.VideoCompressor
 import com.abedelazizshe.lightcompressorlibrary.VideoQuality
 import com.abedelazizshe.lightcompressorlibrary.config.Configuration
 import com.abedelazizshe.lightcompressorlibrary.config.StorageConfiguration
+//import com.iceteck.silicompressorr.SiliCompressor
+
 import com.vid.compress.R
 import com.vid.compress.storage.Disk
 import com.vid.compress.storage.FileUtility
@@ -46,6 +49,7 @@ class ShrinkService: Service() {
     private val buttonFilter = IntentFilter()
     private lateinit var  notificationManager:NotificationManager
     private val timer=Timer()
+    private var isCompressing=false
     override fun onBind(p0: Intent?): IBinder? {
         return null
     }
@@ -85,6 +89,9 @@ class ShrinkService: Service() {
 
         timer.scheduleAtFixedRate(object :TimerTask() {
             override fun run() {
+                if(!isCompressing&&!DataBridge.isEmpty()){
+                    startVideoCompressionTask(DataBridge.peek(),timer)
+                }
                 val completed=(DataBridge.originalSize()-DataBridge.currentSize())
                 val overall=(DataBridge.percent.toFloat()).toInt()
                 small.setTextViewText(R.id.title, "Compressing...("+completed+"/"+DataBridge.originalSize()+")")
@@ -95,39 +102,43 @@ class ShrinkService: Service() {
                 big.setTextViewText(R.id.percent, "($overall%)")
                 small.setTextViewText(R.id.cancel,if(completed==DataBridge.originalSize())"CLOSE" else "CANCEL")
                 big.setTextViewText(R.id.cancel,if(completed==DataBridge.originalSize())"CLOSE" else "CANCEL")
-                if(VideoCompressor.isActive)
+           //     if(VideoCompressor.isActive)
                     notificationManager.notify(ID, notification)
+
 
 
             }
         },0,1500)
 
-          startVideoCompressionTask(DataBridge.peek(),timer)
+
     }
 
 
-    private fun startVideoCompressionTask(video:VideoCompressModel,timer: Timer){
+    @SuppressLint("SuspiciousIndentation")
+    private fun startVideoCompressionTask(video:VideoCompressModel, timer: Timer){
         val array=ArrayList<Uri>()
         array.add(Uri.fromFile(File(video.file.filePath)))
-        VideoCompressor.start(this,array,isStreamable = true, StorageConfiguration(fileName = video.file.fileName,
-            saveAt = "Compressed",isExternal = true),
+        val file=Disk.getDefaultAppFolder(this)
+
+       VideoCompressor.start(this,array,isStreamable = true, StorageConfiguration(fileName = video.file.fileName,
+            saveAt =video.file.fileName,isExternal = true),
            video.getVideoConfiguration(),
             listener = object : CompressionListener {
 
                 override fun onProgress(index: Int, percent: Float) {
                     DataBridge.percent= min ((percent).toInt()+1,100)
+                    isCompressing=true
                 }
                 override fun onStart(index: Int) {
-
+                   isCompressing=true
                 }
                 override fun onSuccess(index: Int, size: Long, path: String?) {
                     // remove compressed file
                     DataBridge.pop()
-                    val storage=Disk.getDirs(this@ShrinkService)[0]
 
                     // move the file out of the cache dir to proper directory
                     kotlin.run {
-                        FileUtility.moveFile(File(path),storage, this@ShrinkService)
+                        FileUtility.moveTo(File(path),FileUtility.createFile(file,File(path).name))
                     }
                     //compress next file
                     if(!DataBridge.isEmpty()) {
@@ -140,16 +151,18 @@ class ShrinkService: Service() {
                             Toast.LENGTH_LONG
                         ).show()
                     }
+                    isCompressing=false
                 }
 
                 override fun onFailure(index: Int, failureMessage: String) {
                     Toast.makeText(this@ShrinkService,failureMessage, Toast.LENGTH_SHORT).show()
                    //@debug  println(failureMessage)
+                    isCompressing=false
 
                 }
 
                 override fun onCancelled(index: Int) {
-
+                   isCompressing=false
                 }
             })
     }

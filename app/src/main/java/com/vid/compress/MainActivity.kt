@@ -70,8 +70,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             VideoCompressorTheme(darkTheme = UserSettingsModel.isDarkModeEnabled(this),this) {
-                Surface(modifier = Modifier.fillMaxSize(),
-                        shape = MaterialTheme.shapes.medium, elevation = 1.dp) {
+                Surface(modifier = Modifier.fillMaxSize(), elevation = 1.dp) {
                     ToolBar(this)
                 }
             }
@@ -81,7 +80,7 @@ class MainActivity : ComponentActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
-        if(data==null)
+      /*  if(data==null)
             return
 
         if(requestCode==32){
@@ -101,7 +100,7 @@ class MainActivity : ComponentActivity() {
                 apply()
             }
             Toast.makeText(this,"Permission Granted!",Toast.LENGTH_SHORT).show()
-        }
+        }*/
     }
 }
 

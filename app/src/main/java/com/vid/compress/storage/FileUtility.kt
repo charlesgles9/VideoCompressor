@@ -91,6 +91,23 @@ class FileUtility {
           return document?.createDirectory(name)?.exists()?:false
       }
 
+    fun createFolder(parent:File,name: String):File{
+        return  File(parent.path+"/"+ name).apply {
+                mkdirs()
+                mkdir()
+            }
+    }
+
+    fun moveTo(origin:File,destination: File){
+        origin.renameTo(destination)
+    }
+
+    fun createFile(parent: File,name: String):File{
+        return File(parent.path,name).apply {
+            createNewFile()
+        }
+    }
+
      fun moveFile(source:File,storage:File,context: Context):Boolean{
 
          var sourceDocument=

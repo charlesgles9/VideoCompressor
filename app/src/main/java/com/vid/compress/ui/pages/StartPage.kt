@@ -141,19 +141,15 @@ fun StartView(context:Activity){
                                 }
 
                             if(pageState.currentPage==1){
-                                val document= FileUtility.getUriFromSharedPreference(Disk.getDirs(context)[0],context)
-                                    ?.let { DocumentFile.fromTreeUri(context, it)
 
-                                    }
-                                if(document?.canWrite() == true){
+                                if(!PermissionHelper.checkStoragePermissionDenied(context)){
                                     //go to main Activity
-                                    val intent = Intent(
-                                        context.applicationContext,
+                                    val intent: Intent = Intent(context,
                                         Class.forName("com.vid.compress.MainActivity"))
                                     context.startActivity(intent)
-                                }else{
+                                    context.finish()
+                                } else{
                                     Toast.makeText(context,"Please grant storage access!",Toast.LENGTH_LONG).show()
-                                    FileUtility.getStoragePermission(Disk.getDirs(context)[0],context)
                                 }
                             }
                         }

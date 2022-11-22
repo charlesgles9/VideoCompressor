@@ -11,6 +11,7 @@ import androidx.compose.material.Surface
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.documentfile.provider.DocumentFile
+import com.vid.compress.permisions.PermissionHelper
 import com.vid.compress.storage.Disk
 import com.vid.compress.storage.FileUtility
 import com.vid.compress.ui.models.UserSettingsModel
@@ -21,17 +22,13 @@ class StartUpActivity : ComponentActivity() {
     @SuppressLint("SuspiciousIndentation")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // special storage access permission
-        val document= FileUtility.getUriFromSharedPreference(Disk.getDirs(this)[0],this)
-            ?.let { DocumentFile.fromTreeUri(this, it)
-
-            }
-        if(document?.canWrite() == true){
+        // storage access permission
+        if(!PermissionHelper.checkStoragePermissionDenied(this)){
             //go to main Activity
             val intent: Intent = Intent(this.applicationContext,
                 Class.forName("com.vid.compress.MainActivity"))
                 this.startActivity(intent)
-            this.finish()
+                this.finish()
         }
         setContent {
             VideoCompressorTheme(darkTheme = UserSettingsModel.isDarkModeEnabled(this),this) {
@@ -46,7 +43,7 @@ class StartUpActivity : ComponentActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
-        if(data==null)
+       /* if(data==null)
             return
 
         if(requestCode==32){
@@ -66,6 +63,6 @@ class StartUpActivity : ComponentActivity() {
                 apply()
             }
             Toast.makeText(this,"Permission Granted!", Toast.LENGTH_SHORT).show()
-        }
+        }*/
     }
 }
