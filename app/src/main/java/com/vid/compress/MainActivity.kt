@@ -39,20 +39,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.ConstraintSet
-import androidx.documentfile.provider.DocumentFile
-import coil.compose.rememberAsyncImagePainter
-import com.bumptech.glide.request.RequestOptions
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.rememberPagerState
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
-import com.skydoves.landscapist.ImageOptions
-import com.skydoves.landscapist.glide.GlideImage
-import com.vid.compress.permisions.PermissionHelper
 import com.vid.compress.storage.Disk
-import com.vid.compress.storage.FileUtility
+
 import com.vid.compress.ui.callbacks.LoadingCompleteListener
+import com.vid.compress.ui.dialogs.ConfirmDeleteDialog
 import com.vid.compress.ui.dialogs.PropertiesDialog
 import com.vid.compress.ui.dialogs.SortByAlertDialog
 import com.vid.compress.ui.models.FileObjectViewModel
@@ -68,8 +63,9 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        UserSettingsModel.darkModeEnabled=UserSettingsModel.isDarkModeEnabled(this)
         setContent {
-            VideoCompressorTheme(darkTheme = UserSettingsModel.isDarkModeEnabled(this),this) {
+            VideoCompressorTheme(darkTheme =  UserSettingsModel.darkModeEnabled,this) {
                 Surface(modifier = Modifier.fillMaxSize(), elevation = 1.dp) {
                     ToolBar(this)
                 }
@@ -113,7 +109,7 @@ private var currentAlbumView=0
 @SuppressLint("UnrememberedMutableState")
 @Composable
 fun FileList(album:AlbumViewModel,context: Context){
-    val columnCount=2
+    UserSettingsModel.columnCount=UserSettingsModel.columnCount(context)
     val slideOptions= remember { mutableStateOf(false) }
     val state= rememberLazyGridState()
     val sliderWidth= animateDpAsState(targetValue =if(slideOptions.value) 90.dp else 0.dp )
@@ -138,8 +134,9 @@ fun FileList(album:AlbumViewModel,context: Context){
         slideOptions.value=slideOptions.value&&album.isSelectActive()
 
         FileOperationLayout(home,context,sliderWidth)
+
         LazyVerticalGrid(columns =
-        when(UserSettingsModel.columnCount(context)){
+        when(UserSettingsModel.columnCount){
                 "1"-> GridCells.Fixed(1)
                 "2"-> GridCells.Fixed(2)
                 "3"-> GridCells.Fixed(3)
@@ -247,7 +244,7 @@ fun BottomNavigationOptions(context: Activity){
                     array.add(home.selected[i].filePath)
                 // album may contain folders so ignore folders
                 for (i in 0 until album.selected.size) {
-                    val file=File(album.selected[i].filePath)
+                    val file = File(album.selected[i].filePath)
                     if (!file.isFile) continue
                     array.add(file.path)
                 }
@@ -255,7 +252,7 @@ fun BottomNavigationOptions(context: Activity){
                 for (i in 0 until history.selected.size)
                     array.add(history.selected[i].filePath)
                 //sends data to the shrinkActivity class
-                if(array.isNotEmpty()) {
+                if (array.isNotEmpty()) {
                     intent.putStringArrayListExtra("selected", array)
                     context.startActivity(intent)
                 }
@@ -472,6 +469,27 @@ fun ToolBar(context: Activity){
           history.sort()
       }
 
+     ConfirmDeleteDialog(album = home) {
+         response->
+         if(response){
+             home.deleteSelectedFiles(context)
+         }
+        home.showDeleteDialog.value=false
+     }
+     ConfirmDeleteDialog(album = album) {
+         response->
+         if(response){
+             album.deleteSelectedFiles(context)
+         }
+         album.showDeleteDialog.value=false
+     }
+     ConfirmDeleteDialog(album = history) {
+         response->
+         if(response){
+             history.deleteSelectedFiles(context)
+         }
+         history.showDeleteDialog.value=false
+     }
     }
 }
 

@@ -1,5 +1,6 @@
 package com.vid.compress.ui.pages
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import androidx.compose.foundation.background
@@ -25,6 +26,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vid.compress.storage.IntentChooserHelper
+import com.vid.compress.ui.dialogs.ConfirmDeleteDialog
 import com.vid.compress.ui.models.AlbumViewModel
 
 import com.vid.compress.ui.theme.CustomShape2
@@ -32,6 +34,7 @@ import com.vid.compress.ui.theme.IconBackground
 import java.io.File
 
 
+@SuppressLint("SuspiciousIndentation")
 @Composable
 fun FileOperationLayout(album:AlbumViewModel,context:Context,sliderWidth:State<Dp>){
     Column(modifier = Modifier
@@ -150,7 +153,9 @@ fun FileOperationLayout(album:AlbumViewModel,context:Context,sliderWidth:State<D
             .size(50.dp)
             .align(Alignment.CenterHorizontally)
             .padding(bottom = 10.dp)
-            .clickable { /*delete file*/ }
+            .clickable { /*delete file*/
+               album.showDeleteDialog.value=true
+            }
             .background(color = IconBackground, shape = CustomShape2) ) {
             Icon(
                 Icons.Outlined.Delete, contentDescription = "Delete",

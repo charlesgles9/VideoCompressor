@@ -108,6 +108,10 @@ class FileUtility {
         }
     }
 
+    fun deleteFile(file: File):Boolean{
+        return  file.delete()
+    }
+
      fun moveFile(source:File,storage:File,context: Context):Boolean{
 
          var sourceDocument=

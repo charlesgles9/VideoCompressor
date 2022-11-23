@@ -31,6 +31,8 @@ import com.vid.compress.ui.models.AlbumViewModel
 import com.vid.compress.ui.theme.CustomShape1
 import com.vid.compress.ui.theme.SelectColor
 import com.vid.compress.ui.theme.Shapes
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 
 
 @SuppressLint("UnrememberedMutableState")
@@ -39,6 +41,7 @@ fun albumList(context: Context,album:AlbumViewModel, state:LazyListState){
     val first by derivedStateOf { state.firstVisibleItemIndex}
     val slideOptions= remember { mutableStateOf(false) }
     val sliderWidth= animateDpAsState(targetValue =if(slideOptions.value) 90.dp else 0.dp )
+    val scope= rememberCoroutineScope()
     val constraints= ConstraintSet {
         val itemList=createRefFor("itemList")
         val options=createRefFor("options")
@@ -69,7 +72,7 @@ fun albumList(context: Context,album:AlbumViewModel, state:LazyListState){
         }
 
         itemsIndexed(album.files){ index, item ->
-            albumItem(context,item, album)
+            albumItem(context,item, album,state)
             LaunchedEffect(key1 = {item.filePath}, block ={
                 item.loadVideoDetails()
                 if(!item.isFolder()) {
@@ -106,6 +109,8 @@ fun albumList(context: Context,album:AlbumViewModel, state:LazyListState){
             }
         }
     }
+
+
 
 }
 
@@ -144,8 +149,8 @@ fun moveBack(album: AlbumViewModel){
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun albumItem(context:Context, file: FileObjectViewModel, album: AlbumViewModel){
-
+fun albumItem(context:Context, file: FileObjectViewModel, album: AlbumViewModel,state: LazyListState){
+   val scope = rememberCoroutineScope()
     BoxWithConstraints (modifier =
     Modifier
         .fillMaxWidth()
@@ -178,6 +183,9 @@ fun albumItem(context:Context, file: FileObjectViewModel, album: AlbumViewModel)
                 // open the folder
                 if (!album.isSelectActive()) {
                     album.setFolder(file.filePath)
+                    scope.launch {
+                        state.scrollToItem(0)
+                    }
                 } else {
                     //select the folder
                     file.selected = !file.selected
@@ -185,6 +193,8 @@ fun albumItem(context:Context, file: FileObjectViewModel, album: AlbumViewModel)
                         album.addSelectFile(file)
                     else
                         album.removeSelectFile(file)
+
+
                 }
 
             }

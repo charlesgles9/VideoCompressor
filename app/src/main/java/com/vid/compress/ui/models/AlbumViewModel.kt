@@ -26,6 +26,7 @@ class AlbumViewModel :ViewModel(){
    var directory=""
    var isLoaded=false
    var showProperties= mutableStateOf(false)
+   var showDeleteDialog = mutableStateOf(false)
    var selectedSize= mutableStateOf("calculating...")
    var showSortOrderDialog= mutableStateOf(false)
    var sortOder= listOf("Name ascending","Name descending",
@@ -70,6 +71,52 @@ class AlbumViewModel :ViewModel(){
                 filterBucket.add(file)
             }
             return@removeAll value
+        }
+    }
+
+
+    fun deleteSelectedFiles(context: Context){
+        Toast.makeText(context,"Deleting Files..",Toast.LENGTH_LONG).show()
+        viewModelScope.launch {
+            val success= mutableListOf<FileObjectViewModel>()
+            val selectedCopy= mutableListOf<FileObjectViewModel>()
+
+            withContext(Dispatchers.Default){
+                selectedCopy.addAll(selected)
+                clearSelected()
+                selectedCopy.forEach{
+                    model->
+                    val file=File(model.filePath)
+                    if(file.isFile) {
+                        // remove all successfully deleted files
+                        if (FileUtility.deleteFile(file)) {
+                            success.add(model)
+                        }
+                        // if it's a folder let's delete the videos within that folder
+                    }else{
+                        val list=map[file.path]
+                        val deleted= mutableListOf<File>()
+                       list?.forEach { item->
+                           // delete the items from this folder
+                           if (FileUtility.deleteFile(item))
+                             deleted.add(item)
+
+                         }
+                        list?.removeAll(deleted)
+                        list?.apply {
+                            // if the list has no children remove it from our map
+                            if(isEmpty()){
+                                map.remove(file.path)
+                                success.add(model)
+                            }
+
+                        }
+                    }
+                }
+            }
+
+            files.removeAll(success)
+            Toast.makeText(context,"Delete task finished!",Toast.LENGTH_LONG).show()
         }
     }
 

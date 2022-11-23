@@ -12,20 +12,13 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.net.Uri
 import android.os.Build
-import android.os.Environment
-import android.os.Handler
+
 import android.os.IBinder
-import android.provider.DocumentsContract
 import android.widget.RemoteViews
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
-import androidx.core.net.toFile
-import androidx.documentfile.provider.DocumentFile
-import androidx.lifecycle.viewmodel.viewModelFactory
 import com.abedelazizshe.lightcompressorlibrary.CompressionListener
 import com.abedelazizshe.lightcompressorlibrary.VideoCompressor
-import com.abedelazizshe.lightcompressorlibrary.VideoQuality
-import com.abedelazizshe.lightcompressorlibrary.config.Configuration
 import com.abedelazizshe.lightcompressorlibrary.config.StorageConfiguration
 //import com.iceteck.silicompressorr.SiliCompressor
 
@@ -33,13 +26,9 @@ import com.vid.compress.R
 import com.vid.compress.storage.Disk
 import com.vid.compress.storage.FileUtility
 import com.vid.compress.ui.models.VideoCompressModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.withContext
 import java.io.File
 import java.util.Timer
 import java.util.TimerTask
-import kotlin.math.abs
 import kotlin.math.min
 
 
@@ -105,11 +94,8 @@ class ShrinkService: Service() {
            //     if(VideoCompressor.isActive)
                     notificationManager.notify(ID, notification)
 
-
-
             }
         },0,1500)
-
 
     }
 

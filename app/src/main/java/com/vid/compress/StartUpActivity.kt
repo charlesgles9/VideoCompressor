@@ -2,7 +2,6 @@ package com.vid.compress
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,10 +9,7 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.documentfile.provider.DocumentFile
 import com.vid.compress.permisions.PermissionHelper
-import com.vid.compress.storage.Disk
-import com.vid.compress.storage.FileUtility
 import com.vid.compress.ui.models.UserSettingsModel
 import com.vid.compress.ui.pages.StartView
 import com.vid.compress.ui.theme.VideoCompressorTheme
