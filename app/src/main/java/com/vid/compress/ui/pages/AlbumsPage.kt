@@ -194,7 +194,6 @@ fun albumItem(context:Context, file: FileObjectViewModel, album: AlbumViewModel,
                     else
                         album.removeSelectFile(file)
 
-
                 }
 
             }
@@ -243,8 +242,7 @@ fun albumItem(context:Context, file: FileObjectViewModel, album: AlbumViewModel,
                     modifier = Modifier
                         .layoutId("thumbnail")
                         .padding(5.dp)
-                        .size(50.dp)
-                )
+                        .size(50.dp))
             }else {
                 if(file.isBitmapReady){
                     Image(bitmap = file.thumbnail, contentDescription ="thumbnail",
