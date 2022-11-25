@@ -1,10 +1,13 @@
 package com.vid.compress.ui.pages
 
 import android.content.Context
+import android.inputmethodservice.Keyboard.Row
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
@@ -26,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vid.compress.R
 import com.vid.compress.ui.models.UserSettingsModel
+import com.vid.compress.ui.theme.LightBlue
 import com.vid.compress.ui.theme.LightGray
 import com.vid.compress.ui.theme.LighterBlue
 
@@ -35,9 +39,13 @@ fun DrawerView(context:Context){
     LazyColumn{
 
         item {
-            drawerTitleLayout()
+            drawerTitleLayout(context)
+
         }
 
+        item{
+            Divider(thickness = 1.dp, color = Color.White)
+        }
         item {
             drawerHeader(title = "Rate Us",Icons.Default.Favorite){
 
@@ -200,12 +208,26 @@ fun drawerItemDropDown(value:String,title: String,items:Array<Any>,callback:(Str
 }
 
 @Composable
-fun drawerTitleLayout(){
-    Column(modifier=Modifier.fillMaxWidth().padding(10.dp)) {
-        Image(painter = painterResource(id = R.drawable.ic_launcher_background),
-            contentDescription = "DrawerIcon", modifier = Modifier.fillMaxHeight(0.3f))
-        Text(text = "Shrink compressor!", style = TextStyle(fontSize = 20.sp,
-            color = MaterialTheme.colors.onSecondary, fontWeight = FontWeight.ExtraBold, fontStyle = FontStyle.Italic))
-        Divider(thickness = 1.dp, color = Color.White)
+fun drawerTitleLayout(context:Context){
+
+    //get the version code dynamically
+    val pInfo=context.packageManager.getPackageInfo(context.packageName,0)
+
+    Row(modifier=Modifier.fillMaxWidth()){
+
+        Column(modifier=Modifier.fillMaxWidth().padding(10.dp).weight(1f) ){
+
+            Image(painter = painterResource(id = R.mipmap.compress),
+                contentDescription = "DrawerIcon", modifier = Modifier.fillMaxHeight(0.3f)
+                    .padding(10.dp))
+            Text(text = "Shrink It Bro!", style = TextStyle(fontSize = 30.sp,
+                color = MaterialTheme.colors.onSecondary, fontWeight = FontWeight.ExtraBold, fontStyle = FontStyle.Italic))
+        }
+        Text(text = "v"+pInfo.versionName+pInfo.versionCode, style = TextStyle(fontSize = 20.sp, color = LightBlue,
+            fontWeight = FontWeight.ExtraBold, fontStyle = FontStyle.Italic),
+            modifier = Modifier.padding(10.dp))
+
     }
+
+
 }

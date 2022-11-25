@@ -6,7 +6,6 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.provider.MediaStore
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.core.animateDpAsState
@@ -66,6 +65,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         UserSettingsModel.darkModeEnabled=UserSettingsModel.isDarkModeEnabled(this)
+
         setContent {
             VideoCompressorTheme(darkTheme =  UserSettingsModel.darkModeEnabled,this) {
                 Surface(modifier = Modifier.fillMaxSize(), elevation = 1.dp) {
@@ -426,7 +426,9 @@ fun ToolBar(context: Activity){
                             modifier = Modifier.padding(start = 10.dp, end = 20.dp)
                                 .clickable {
                                     val takeVideoIntent=Intent(MediaStore.ACTION_VIDEO_CAPTURE)
-                                         context.startActivityForResult(takeVideoIntent,0x64)
+                                    with(context) {
+                                        startActivityForResult(takeVideoIntent,0x64)
+                                    }
                                 })
                         Icon(
                             Icons.Filled.Search,
@@ -509,7 +511,7 @@ fun LoadingView(modifier:Modifier){
         Column(modifier = Modifier
             .fillMaxWidth()
             .padding(top = 15.dp, bottom = 15.dp)) {
-            CircularProgressIndicator( color = ColorTheme1,
+            CircularProgressIndicator( color = LightBlue,
                 modifier = Modifier.align(Alignment.CenterHorizontally))
         }
     }
