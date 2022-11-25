@@ -19,14 +19,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.ConstraintSet
-import androidx.documentfile.provider.DocumentFile
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.rememberPagerState
 import com.vid.compress.R
 import com.vid.compress.permisions.PermissionHelper
-import com.vid.compress.storage.Disk
-import com.vid.compress.storage.FileUtility
 import com.vid.compress.ui.theme.LightBlue
 import kotlinx.coroutines.launch
 

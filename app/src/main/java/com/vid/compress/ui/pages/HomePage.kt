@@ -20,6 +20,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -196,16 +197,15 @@ fun drawerItemDropDown(value:String,title: String,items:Array<Any>,callback:(Str
             }
         }
     }
-
 }
+
 @Composable
 fun drawerTitleLayout(){
-    Column {
-
+    Column(modifier=Modifier.fillMaxWidth().padding(10.dp)) {
         Image(painter = painterResource(id = R.drawable.ic_launcher_background),
             contentDescription = "DrawerIcon", modifier = Modifier.fillMaxHeight(0.3f))
-        Text(text = "Shrink compressor!", style = TextStyle(fontSize = 12.sp,
-            color = MaterialTheme.colors.onSecondary))
-        Divider(thickness = 1.dp)
+        Text(text = "Shrink compressor!", style = TextStyle(fontSize = 20.sp,
+            color = MaterialTheme.colors.onSecondary, fontWeight = FontWeight.ExtraBold, fontStyle = FontStyle.Italic))
+        Divider(thickness = 1.dp, color = Color.White)
     }
 }

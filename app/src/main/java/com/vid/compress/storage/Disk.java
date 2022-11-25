@@ -42,7 +42,7 @@ public class Disk {
     }
 
     public static File getDefaultAppFolder(Context context){
-        File parent=new File(getDirs(context)[0].getPath(), Environment.DIRECTORY_DCIM);
+        File parent=Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM);
         return FileUtility.Companion.createFolder(parent,"ShrinkCompressor");
     }
 

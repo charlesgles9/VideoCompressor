@@ -29,6 +29,7 @@ class FileObjectViewModel(private val file:File) :ViewModel(){
     var directoryCount by mutableStateOf("0")
     var videoLength by mutableStateOf("00:00:00")
     var originalResolution by mutableStateOf(Pair<Any,Any>(0,0))
+    var originalResolutionText by mutableStateOf("0x0")
     lateinit var thumbnail:ImageBitmap
     var thumbnailLoaded by mutableStateOf(false)
     var isBitmapReady by mutableStateOf(false)
@@ -88,6 +89,7 @@ class FileObjectViewModel(private val file:File) :ViewModel(){
                     media.setDataSource(file.path)
                     media.prepare()
                     originalResolution = Pair(media.videoWidth, media.videoHeight)
+                    originalResolutionText=media.videoWidth.toString()+"x"+media.videoHeight.toString()
                     media.release()
                 }catch (e:Exception){
                     e.printStackTrace()

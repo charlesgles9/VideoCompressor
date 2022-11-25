@@ -5,6 +5,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.provider.MediaStore
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -45,6 +46,7 @@ import com.google.accompanist.pager.rememberPagerState
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.vid.compress.storage.Disk
+import com.vid.compress.storage.PathUtils
 
 import com.vid.compress.ui.callbacks.LoadingCompleteListener
 import com.vid.compress.ui.dialogs.ConfirmDeleteDialog
@@ -60,9 +62,9 @@ import java.io.File
 
 class MainActivity : ComponentActivity() {
 
+    private val REQUEST_VIDEO_CAPTURE=0X64
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         UserSettingsModel.darkModeEnabled=UserSettingsModel.isDarkModeEnabled(this)
         setContent {
             VideoCompressorTheme(darkTheme =  UserSettingsModel.darkModeEnabled,this) {
@@ -73,30 +75,19 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-
-      /*  if(data==null)
-            return
-
-        if(requestCode==32){
-            val uri=data.data
-            val document= uri?.let { DocumentFile.fromTreeUri(applicationContext, it) }
-            if(document==null||!document.canWrite()){
-                Toast.makeText(applicationContext,"Failed to Grant Permission!",Toast.LENGTH_LONG).show()
-                return
+    override fun onActivityResult(requestCode: Int, resultCode: Int, result: Intent?) {
+        super.onActivityResult(requestCode, resultCode, result)
+        if(requestCode==REQUEST_VIDEO_CAPTURE&&resultCode== RESULT_OK){
+            result?.apply {
+                val intent = Intent(applicationContext,
+                    Class.forName("com.vid.compress.ShrinkActivity"))
+                val array=ArrayList<String>()
+                array.add(PathUtils.mediaUriToFilePath(this@MainActivity,result.data))
+                intent.putStringArrayListExtra("selected", array)
+                startActivity(intent)
             }
+        }
 
-           val storage=Disk.getStorage(applicationContext,document.name)
-
-            grantUriPermission(packageName,uri,Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
-            contentResolver.takePersistableUriPermission(uri,Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
-            val editor = getSharedPreferences("StorageUri", MODE_PRIVATE).edit().apply {
-                putString(storage.path,uri.path)
-                apply()
-            }
-            Toast.makeText(this,"Permission Granted!",Toast.LENGTH_SHORT).show()
-        }*/
     }
 }
 
@@ -327,21 +318,34 @@ fun FileCard(file: FileObjectViewModel, context: Context, album: AlbumViewModel)
                          color = Color.White,
                          fontSize = 11.sp,
                          fontWeight = FontWeight.Normal))
-                 Text(
-                     text = file.videoLength, maxLines = 1,
-                     overflow = TextOverflow.Ellipsis,
-                     modifier = Modifier
-                         .padding(top = 5.dp),
-                     style = TextStyle(
-                         color = Color.White,
-                         fontSize = 11.sp,
-                         fontWeight = FontWeight.Normal))
+                 Row(modifier=Modifier.fillMaxWidth()){
+                     Text(
+                         text = file.videoLength, maxLines = 1,
+                         overflow = TextOverflow.Ellipsis,
+                         modifier = Modifier
+                             .padding(top = 5.dp).weight(1f),
+                         style = TextStyle(
+                             color = Color.White,
+                             fontSize = 11.sp,
+                             fontWeight = FontWeight.Normal))
+                     Text(
+                         text = file.originalResolutionText, maxLines = 1,
+                         overflow = TextOverflow.Ellipsis,
+                         modifier = Modifier
+                             .padding(top = 5.dp).weight(1f),
+                         style = TextStyle(
+                             color = Color.White,
+                             fontSize = 11.sp,
+                             fontWeight = FontWeight.Normal))
+                 }
+
              }
          }
 
 
     file.loadVideoDetails()
     file.loadBitmap(context)
+    file.fetchVideoResolution()
 }
 
 @Composable
@@ -419,7 +423,11 @@ fun ToolBar(context: Activity){
                         Icon(
                             painter = painterResource(id = R.drawable.ic_videocam),
                             contentDescription = "Play",
-                            modifier = Modifier.padding(start = 10.dp, end = 20.dp))
+                            modifier = Modifier.padding(start = 10.dp, end = 20.dp)
+                                .clickable {
+                                    val takeVideoIntent=Intent(MediaStore.ACTION_VIDEO_CAPTURE)
+                                         context.startActivityForResult(takeVideoIntent,0x64)
+                                })
                         Icon(
                             Icons.Filled.Search,
                             contentDescription = "Search",

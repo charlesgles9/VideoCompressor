@@ -31,21 +31,17 @@ import com.vid.compress.ui.models.AlbumViewModel
 import com.vid.compress.ui.theme.CustomShape1
 import com.vid.compress.ui.theme.SelectColor
 import com.vid.compress.ui.theme.Shapes
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 
 
 @SuppressLint("UnrememberedMutableState")
 @Composable
 fun albumList(context: Context,album:AlbumViewModel, state:LazyListState){
-    val first by derivedStateOf { state.firstVisibleItemIndex}
     val slideOptions= remember { mutableStateOf(false) }
     val sliderWidth= animateDpAsState(targetValue =if(slideOptions.value) 90.dp else 0.dp )
-    val scope= rememberCoroutineScope()
     val constraints= ConstraintSet {
         val itemList=createRefFor("itemList")
         val options=createRefFor("options")
-        val search=createRefFor("search")
         val fold=createRefFor("fold")
         constrain(itemList){
             end.linkTo(options.start)
@@ -213,6 +209,7 @@ fun albumItem(context:Context, file: FileObjectViewModel, album: AlbumViewModel,
            val directoryName=createRefFor("directoryName")
            val directoryCount=createRefFor("directoryCount")
            val directoryPath=createRefFor("directoryPath")
+           val resolution= createRefFor("resolution")
 
            constrain(thumbnail){
                start.linkTo(parent.start)
@@ -229,6 +226,11 @@ fun albumItem(context:Context, file: FileObjectViewModel, album: AlbumViewModel,
                end.linkTo(parent.end)
                centerVerticallyTo(directoryPath)
            }
+
+          constrain(resolution){
+              end.linkTo(parent.end)
+              top.linkTo(thumbnail.top)
+          }
        }
         ConstraintLayout(constraints, modifier = Modifier.fillMaxWidth()) {
             if(file.isFolder()) {
@@ -280,9 +282,19 @@ fun albumItem(context:Context, file: FileObjectViewModel, album: AlbumViewModel,
                     .layoutId("directoryCount")
                     .padding(end = 15.dp))
 
+            if(!file.isFolder()){
+                Text(text = file.originalResolutionText,
+                    style= TextStyle(color = MaterialTheme.colors.secondaryVariant,
+                        fontWeight = FontWeight.Normal, fontSize = 10.sp), maxLines = 1,
+                    modifier = Modifier
+                        .layoutId("resolution")
+                        .padding(end = 15.dp))
+            }
+
 
         }
     }
-
+    if(!file.isFolder())
+        file.fetchVideoResolution()
 
 }

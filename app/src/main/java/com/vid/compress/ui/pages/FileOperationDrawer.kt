@@ -26,7 +26,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vid.compress.storage.IntentChooserHelper
-import com.vid.compress.ui.dialogs.ConfirmDeleteDialog
 import com.vid.compress.ui.models.AlbumViewModel
 
 import com.vid.compress.ui.theme.CustomShape2

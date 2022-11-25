@@ -136,7 +136,7 @@ fun HistoryItem(context: Context, file: FileObjectViewModel, album: AlbumViewMod
             val directoryName=createRefFor("directoryName")
             val directoryCount=createRefFor("directoryCount")
             val directoryPath=createRefFor("directoryPath")
-
+            val resolution= createRefFor("resolution")
             constrain(thumbnail){
                 start.linkTo(parent.start)
             }
@@ -151,6 +151,10 @@ fun HistoryItem(context: Context, file: FileObjectViewModel, album: AlbumViewMod
             constrain(directoryCount){
                 end.linkTo(parent.end)
                 centerVerticallyTo(directoryPath)
+            }
+            constrain(resolution){
+                end.linkTo(parent.end)
+                top.linkTo(thumbnail.top)
             }
         }
 
@@ -187,9 +191,18 @@ fun HistoryItem(context: Context, file: FileObjectViewModel, album: AlbumViewMod
                 modifier = Modifier
                     .layoutId("directoryCount")
                     .padding(end = 15.dp))
+            if(!file.isFolder()){
+                Text(text = file.originalResolutionText,
+                    style= TextStyle(color = MaterialTheme.colors.secondaryVariant,
+                        fontWeight = FontWeight.Normal, fontSize = 10.sp), maxLines = 1,
+                    modifier = Modifier
+                        .layoutId("resolution")
+                        .padding(end = 15.dp))
+            }
         }
     }
     file.loadVideoDetails()
+    file.fetchVideoResolution()
     if(!file.isFolder()) {
         file.loadBitmap(context)
     }
