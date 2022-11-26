@@ -7,6 +7,7 @@
 
 # ScreenShots
 
- file:///home/chucky/Pictures/Screenshots/Screenshot%20from%202022-11-26%2013-49-29.png
+ 
 
 
+![Screenshot from 2022-11-26 13-49-29](https://user-images.githubusercontent.com/41951671/204085168-ea40d3f5-daff-40d6-9823-d8cfab2fda28.png)
