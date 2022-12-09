@@ -75,6 +75,16 @@ class FileObjectViewModel(private val file:File) :ViewModel(){
                 } else {
                     setVideoLength()
                     directoryCount = Disk.getSize(file.length())
+                    val media= MediaPlayer()
+                    try {
+                        media.setDataSource(file.path)
+                        media.prepare()
+                        originalResolution = Pair(media.videoWidth, media.videoHeight)
+                        originalResolutionText=media.videoWidth.toString()+"x"+media.videoHeight.toString()
+                        media.release()
+                    }catch (e:Exception){
+                        e.printStackTrace()
+                    }
 
                 }
 

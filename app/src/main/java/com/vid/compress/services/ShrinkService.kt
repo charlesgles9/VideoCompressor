@@ -24,11 +24,10 @@ import com.abedelazizshe.lightcompressorlibrary.config.StorageConfiguration
 
 import com.vid.compress.R
 import com.vid.compress.storage.Disk
-import com.vid.compress.storage.FileUtility
 import com.vid.compress.ui.models.VideoCompressModel
+
 import java.io.File
-import java.util.Timer
-import java.util.TimerTask
+import java.util.*
 import kotlin.math.min
 
 
@@ -82,7 +81,7 @@ class ShrinkService: Service() {
                     startVideoCompressionTask(DataBridge.peek(),timer)
                 }
                 val completed=(DataBridge.originalSize()-DataBridge.currentSize())
-                val overall=(DataBridge.percent.toFloat()).toInt()
+                val overall=if(!isCompressing) 100 else (DataBridge.percent.toFloat()).toInt()
                 small.setTextViewText(R.id.title, "Compressing...("+completed+"/"+DataBridge.originalSize()+")")
                 big.setTextViewText(R.id.title, "Compressing...("+completed+"/"+DataBridge.originalSize()+")")
                 small.setProgressBar(R.id.progress, 100, overall, false)
@@ -102,12 +101,14 @@ class ShrinkService: Service() {
 
     @SuppressLint("SuspiciousIndentation")
     private fun startVideoCompressionTask(video:VideoCompressModel, timer: Timer){
-        val array=ArrayList<Uri>()
+        val array= ArrayList<Uri>()
         array.add(Uri.fromFile(File(video.file.filePath)))
-        val file=Disk.getDefaultAppFolder(this)
+
+        // create app folder in case it doesn't exist
+        val file=Disk.createDefaultAppFolder(this)
 
        VideoCompressor.start(this,array,isStreamable = true, StorageConfiguration(fileName = video.file.fileName,
-            saveAt =video.file.fileName,isExternal = true),
+            saveAt =Disk.getDefaultFolder(),isExternal = true),
            video.getVideoConfiguration(),
             listener = object : CompressionListener {
 
@@ -120,12 +121,9 @@ class ShrinkService: Service() {
                 }
                 override fun onSuccess(index: Int, size: Long, path: String?) {
                     // remove compressed file
+                  if(!DataBridge.isEmpty())
                     DataBridge.pop()
 
-                    // move the file out of the cache dir to proper directory
-                    kotlin.run {
-                        FileUtility.moveTo(File(path),FileUtility.createFile(file,File(path).name))
-                    }
                     //compress next file
                     if(!DataBridge.isEmpty()) {
                         startVideoCompressionTask(DataBridge.peek(), timer)

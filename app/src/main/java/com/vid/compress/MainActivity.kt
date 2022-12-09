@@ -345,7 +345,7 @@ fun FileCard(file: FileObjectViewModel, context: Context, album: AlbumViewModel)
 
     file.loadVideoDetails()
     file.loadBitmap(context)
-    file.fetchVideoResolution()
+    //file.fetchVideoResolution()
 }
 
 @Composable
@@ -660,7 +660,7 @@ fun HorizontalPagerView(context: Context){
 
                 2->{
                     if(!history.isLoaded) {
-                        history.fetchFiles(Disk.getDefaultAppFolder(context), context,
+                        history.fetchFiles(Disk.createDefaultAppFolder(context), context,
                             listener = object : LoadingCompleteListener {
                                 override fun finished() {
                                     historyLoadingVisible.value = false
@@ -683,7 +683,7 @@ fun HorizontalPagerView(context: Context){
                             if(!historyLoadingVisible.value) {
                                 //in case the user refreshed the view while select is on clear select
                                 history.clearSelected()
-                                history.fetchFiles(Disk.getDefaultAppFolder(context),
+                                history.fetchFiles(Disk.createDefaultAppFolder(context),
                                     context,
                                     listener = object : LoadingCompleteListener {
                                         override fun finished() {

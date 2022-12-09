@@ -20,6 +20,7 @@ class DataBridge {
       }
 
       fun pop():VideoCompressModel{
+
           return data.pop()
       }
 

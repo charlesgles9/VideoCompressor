@@ -294,7 +294,6 @@ fun albumItem(context:Context, file: FileObjectViewModel, album: AlbumViewModel,
 
         }
     }
-    if(!file.isFolder())
-        file.fetchVideoResolution()
+
 
 }
